@@ -1,15 +1,10 @@
-import {
-  ASSET_NAMESPACE,
-  CHAIN_NAMESPACE,
-  type ChainId,
-  fromAssetId,
-  fromChainId,
-} from '@sola-ai/caip'
+import { ASSET_NAMESPACE, CHAIN_NAMESPACE, fromAssetId, fromChainId } from '@sola-ai/caip'
+import type { ChainId } from '@sola-ai/caip'
 import type { Asset, GetRateInput, GetRateOutput } from '@sola-ai/types'
 import { getFeeAssetIdByChainId, toBaseUnit } from '@sola-ai/utils'
 import { RangoClient } from 'rango-sdk-basic'
-import type { BlockchainMeta } from 'rango-types/basicApi'
-import { RoutingResultType, TransactionType, type SolanaInstruction, type SolanaInstructionKey } from 'rango-types/basicApi'
+import type { BlockchainMeta, SolanaInstruction, SolanaInstructionKey } from 'rango-types/basicApi'
+import { RoutingResultType, TransactionType } from 'rango-types/basicApi'
 import { decodeFunctionData, erc20Abi, getAddress } from 'viem'
 
 import type { TransactionData } from '../../lib/schemas/swapSchemas'
@@ -196,9 +191,7 @@ const ROUTE_PREVIEW_OK_TYPES: RoutingResultType[] = [
 
 function logRangoQuoteError(context: string, err: unknown, extra?: Record<string, unknown>): void {
   const base =
-    err instanceof Error
-      ? { message: err.message, name: err.name, stack: err.stack }
-      : { message: String(err) }
+    err instanceof Error ? { message: err.message, name: err.name, stack: err.stack } : { message: String(err) }
   console.error(`[Rango quotes] ${context}`, { ...base, ...extra })
 }
 

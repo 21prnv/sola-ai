@@ -1,6 +1,7 @@
-import { describe, test, expect, beforeAll } from 'bun:test'
-import { AssetService } from '../AssetService'
 import type { Network } from '@sola-ai/types'
+import { describe, test, expect, beforeAll } from 'bun:test'
+
+import { AssetService } from '../AssetService'
 
 describe('AssetService search scoring', () => {
   beforeAll(async () => {
@@ -45,22 +46,22 @@ describe('AssetService search scoring', () => {
       expect: { symbolOrName: 'USDT' },
     },
     {
-      name: 'FOX on Ethereum',
-      search: 'FOX',
+      name: 'LINK on Ethereum',
+      search: 'LINK',
       network: 'ethereum',
-      expect: { assetId: 'eip155:1/erc20:0xc770eefad204b5180df6a14ee197d99d808ee52d' },
+      expect: { assetId: 'eip155:1/erc20:0x514910771af9ca656af840dff83e8264ecf986ca' },
     },
     {
-      name: 'FOX on Gnosis',
-      search: 'FOX',
+      name: 'LINK on Gnosis',
+      search: 'LINK',
       network: 'gnosis',
-      expect: { assetId: 'eip155:100/erc20:0x21a42669643f45bc0e086b8fc2ed70c23d67509d' },
+      expect: { assetId: 'eip155:100/erc20:0xe2e73a1c69ecf83f464efce6a5be353a37ca09b2' },
     },
     {
-      name: 'FOX on Arbitrum',
-      search: 'FOX',
+      name: 'LINK on Arbitrum',
+      search: 'LINK',
       network: 'arbitrum',
-      expect: { assetId: 'eip155:42161/erc20:0xf929de51d91c77e42f5090069e0ad7a09e513c73' },
+      expect: { assetId: 'eip155:42161/erc20:0xf97f4df75117a78c1a5a0dbb814af92458539fb4' },
     },
     {
       name: 'WETH on Ethereum',
@@ -121,12 +122,6 @@ describe('AssetService search scoring', () => {
       search: 'UNI',
       network: 'ethereum',
       expect: { symbolOrName: 'UNI' },
-    },
-    {
-      name: 'LINK on Ethereum',
-      search: 'LINK',
-      network: 'ethereum',
-      expect: { symbolOrName: 'LINK' },
     },
     {
       name: 'XDAI on Gnosis (native)',

@@ -32,7 +32,6 @@ describe('withWalletLock', () => {
       throw new Error('boom')
     })
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     await expect(failing).rejects.toThrow('boom')
 
     const result = await withWalletLock(async () => 'recovered')

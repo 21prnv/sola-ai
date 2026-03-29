@@ -54,31 +54,8 @@ describe('normalizeToActivityItem', () => {
     expect(result!.type === 'send' && result!.txHash).toBe('0xsend')
   })
 
-  it('dispatches to limit_order normalizer', () => {
-    const tx = makeExecutionState({
-      toolName: 'createLimitOrderTool',
-      meta: { orderId: '0xorder1' },
-      toolOutput: {
-        summary: {
-          sellAsset: { symbol: 'USDC', amount: '1000' },
-          buyAsset: { symbol: 'ETH', estimatedAmount: '0.5' },
-          limitPrice: '2000',
-          expiresAt: '2025-01-01',
-          provider: 'CoW',
-          network: 'ethereum',
-        },
-        orderParams: { chainId: 1 },
-      } as any,
-    })
-    const result = normalizeToActivityItem(tx)
-
-    expect(result).not.toBeNull()
-    expect(result!.type).toBe('limit_order')
-    expect((result as any).orderId).toBe('0xorder1')
-  })
-
   it('returns null for unknown tool types', () => {
-    const tx = makeExecutionState({ toolName: 'cancelLimitOrderTool' })
+    const tx = makeExecutionState({ toolName: 'portfolioTool' })
     expect(normalizeToActivityItem(tx)).toBeNull()
   })
 
@@ -105,25 +82,6 @@ describe('normalizeToActivityItem', () => {
       toolOutput: {
         summary: { symbol: 'ETH', amount: '0.5', from: '0xaaa', to: '0xbbb', network: 'ethereum' },
         sendData: { chainId: 'eip155:1' },
-      } as any,
-    })
-    expect(normalizeToActivityItem(tx)).toBeNull()
-  })
-
-  it('returns null for limit order without orderId', () => {
-    const tx = makeExecutionState({
-      toolName: 'createLimitOrderTool',
-      meta: {},
-      toolOutput: {
-        summary: {
-          sellAsset: { symbol: 'USDC', amount: '1000' },
-          buyAsset: { symbol: 'ETH', estimatedAmount: '0.5' },
-          limitPrice: '2000',
-          expiresAt: '2025-01-01',
-          provider: 'CoW',
-          network: 'ethereum',
-        },
-        orderParams: { chainId: 1 },
       } as any,
     })
     expect(normalizeToActivityItem(tx)).toBeNull()

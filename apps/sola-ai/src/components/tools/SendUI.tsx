@@ -1,5 +1,5 @@
-import type { SendOutput } from '@sola-ai/server'
 import { CHAIN_NAMESPACE, fromChainId } from '@sola-ai/caip'
+import type { SendOutput } from '@sola-ai/server'
 import { toast } from 'sonner'
 
 import { Execution } from '@/components/Execution'

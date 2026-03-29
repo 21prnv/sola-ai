@@ -4,8 +4,8 @@ import { toBigInt, toBaseUnit } from '@sola-ai/utils'
 import { encodeFunctionData, erc20Abi, getAddress } from 'viem'
 import { z } from 'zod'
 
-import { cowSupportedNetworkSchema, NETWORK_TO_CHAIN_ID } from '../../lib/cow/types'
 import type { TransactionData } from '../../lib/schemas/swapSchemas'
+import { NETWORK_TO_CHAIN_ID, vaultSupportedNetworkSchema } from '../../lib/vaultNetworks'
 import { isNativeToken, resolveAsset } from '../../utils/assetHelpers'
 import { validateSufficientBalance } from '../../utils/balanceHelpers'
 import { createTransaction } from '../../utils/transactionHelpers'
@@ -15,7 +15,7 @@ import type { WalletContext } from '../../utils/walletContextSimple'
 export const vaultDepositSchema = z.object({
   asset: z.string().describe('Token symbol or name to deposit (e.g., "WETH", "USDC")'),
   amount: z.string().describe('Amount to deposit in human-readable format (e.g., "1" for 1 WETH)'),
-  network: cowSupportedNetworkSchema.describe('Network for the deposit'),
+  network: vaultSupportedNetworkSchema.describe('Network for the deposit'),
 })
 
 export type VaultDepositInput = z.infer<typeof vaultDepositSchema>
@@ -69,9 +69,7 @@ export async function executeVaultDeposit(
 ): Promise<VaultDepositOutput> {
   const safeAddress = await getSafeAddressForChain(walletContext, NETWORK_TO_CHAIN_ID[input.network]!)
   if (!safeAddress) {
-    throw new Error(
-      'No Safe vault found. A Safe smart account is deployed automatically when you create your first automated order.'
-    )
+    throw new Error('No Safe vault found. Deploy a Safe on this chain first.')
   }
 
   const asset = await resolveAsset({ symbolOrName: input.asset, network: input.network }, walletContext)
@@ -100,7 +98,7 @@ UI CARD DISPLAYS: deposit amount, asset, source wallet, and vault address.
 
 IMPORTANT: Do NOT write any response text alongside this tool call. Wait for the tool result before responding. If the tool succeeds, the UI card will show the result — supplement it with one brief sentence, do not duplicate card data. If the tool fails, tell the user what went wrong and suggest alternatives.
 
-Tokens must be in the Safe vault before automated orders (stop-loss, TWAP, DCA) can execute. This transfers tokens from your EOA wallet to the Safe.`,
+Deposits tokens from your EOA wallet into the Safe vault on the selected network.`,
   inputSchema: vaultDepositSchema,
   execute: executeVaultDeposit,
 }

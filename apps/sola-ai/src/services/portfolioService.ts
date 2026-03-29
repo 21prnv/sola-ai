@@ -2,8 +2,8 @@ import type { ChainId } from '@sola-ai/caip'
 import type { EvmSolanaNetwork } from '@sola-ai/types'
 
 import { bn, bnOrZero } from '@/lib/bignumber'
-import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 import { calculate24hDelta } from '@/lib/portfolio'
+import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 import type { PortfolioAsset, PortfolioData } from '@/types/portfolio'
 
 type PortfolioBalanceItem = {

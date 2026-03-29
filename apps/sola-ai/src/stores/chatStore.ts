@@ -7,8 +7,6 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 
 import type {
   ChainResult,
-  ConditionalOrderMeta,
-  LimitOrderMeta,
   SendMeta,
   SwapMeta,
   ToolExecutionState,
@@ -254,52 +252,10 @@ export const useChatStore = create<ChatState>()(
           'initiateSwapTool',
           'initiateSwapUsdTool',
           'sendTool',
-          'createLimitOrderTool',
-          'createStopLossTool',
-          'createTwapTool',
           'vaultDepositTool',
           'vaultWithdrawTool',
           'vaultWithdrawAllTool',
         ] as const
-
-        type SellBuy = {
-          sell?: { symbol?: string; amount?: string }
-          buy?: { symbol?: string; amount?: string }
-        }
-
-        const conditionalOrderTxs = (
-          meta: { approvalTxHash?: string; depositTxHash?: string; txHash?: string; networkName?: string },
-          { sell, buy }: SellBuy,
-          mainType: KnownTransaction['type']
-        ): KnownTransaction[] => {
-          const results: KnownTransaction[] = []
-          if (meta.approvalTxHash)
-            results.push({
-              txHash: meta.approvalTxHash,
-              type: 'approval',
-              sellSymbol: sell?.symbol,
-              network: meta.networkName,
-            })
-          if (meta.depositTxHash)
-            results.push({
-              txHash: meta.depositTxHash,
-              type: 'deposit',
-              sellSymbol: sell?.symbol,
-              sellAmount: sell?.amount,
-              network: meta.networkName,
-            })
-          if (meta.txHash)
-            results.push({
-              txHash: meta.txHash,
-              type: mainType,
-              sellSymbol: sell?.symbol,
-              sellAmount: sell?.amount,
-              buySymbol: buy?.symbol,
-              buyAmount: buy?.amount,
-              network: meta.networkName,
-            })
-          return results
-        }
 
         return get()
           .persistedTransactions.filter(
@@ -340,39 +296,6 @@ export const useChatStore = create<ChatState>()(
                   network: meta.networkName ?? sell?.network,
                 },
               ]
-            }
-
-            if (tx.toolName === 'createLimitOrderTool') {
-              const meta = tx.meta as LimitOrderMeta
-              const sell = summary?.sellAsset as { symbol?: string; amount?: string } | undefined
-              const buy = summary?.buyAsset as { symbol?: string; estimatedAmount?: string } | undefined
-              return conditionalOrderTxs(
-                meta,
-                { sell, buy: buy && { ...buy, amount: buy.estimatedAmount } },
-                'limitOrder'
-              )
-            }
-
-            if (tx.toolName === 'createStopLossTool') {
-              const meta = tx.meta as ConditionalOrderMeta
-              const sell = summary?.sellAsset as { symbol?: string; amount?: string } | undefined
-              const buy = summary?.buyAsset as { symbol?: string; estimatedAmount?: string } | undefined
-              return conditionalOrderTxs(
-                meta,
-                { sell, buy: buy && { ...buy, amount: buy.estimatedAmount } },
-                'stopLoss'
-              )
-            }
-
-            if (tx.toolName === 'createTwapTool') {
-              const meta = tx.meta as ConditionalOrderMeta
-              const sell = summary?.sellAsset as { symbol?: string; totalAmount?: string } | undefined
-              const buy = summary?.buyAsset as { symbol?: string } | undefined
-              return conditionalOrderTxs(
-                meta,
-                { sell: sell && { symbol: sell.symbol, amount: sell.totalAmount }, buy },
-                'twap'
-              )
             }
 
             if (tx.toolName === 'vaultDepositTool' || tx.toolName === 'vaultWithdrawTool') {

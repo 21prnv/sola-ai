@@ -70,8 +70,8 @@ export const getAssetPricesTool = {
 Do NOT use for swap quotes, routes, aggregators, or questions like "how much would I get if I swap X to Y" — those require initiateSwap (shows live Rango routes in the UI).
 
 Examples:
-- { assets: [{ searchTerm: "FOX", network: "ethereum" }] }
-- { assets: [{ searchTerm: "FOX" }, { searchTerm: "ZKP" }] }
+- { assets: [{ searchTerm: "LINK", network: "ethereum" }] }
+- { assets: [{ searchTerm: "LINK" }, { searchTerm: "ZKP" }] }
 - { assets: [{ assetId: "eip155:1/erc20:0x..." }] }`,
   inputSchema: getAssetPricesSchema,
   execute: executeGetAssetPrices,

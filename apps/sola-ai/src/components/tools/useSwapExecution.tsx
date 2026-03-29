@@ -1,5 +1,5 @@
-import type { InitiateSwapOutput } from '@sola-ai/server'
 import { CHAIN_NAMESPACE, fromChainId } from '@sola-ai/caip'
+import type { InitiateSwapOutput } from '@sola-ai/server'
 import type { DynamicToolUIPart } from 'ai'
 import { toast } from 'sonner'
 

@@ -55,7 +55,10 @@ export function getAddressForNetwork(walletContext: WalletContext | undefined, n
 }
 
 /** Returns the connected address for a CAIP chain id, or `undefined` if none (no throw). */
-export function getAddressForChainOptional(walletContext: WalletContext | undefined, chainId: string): string | undefined {
+export function getAddressForChainOptional(
+  walletContext: WalletContext | undefined,
+  chainId: string
+): string | undefined {
   const addr = walletContext?.connectedWallets?.[chainId]?.address?.trim()
   return addr || undefined
 }
@@ -79,6 +82,13 @@ export function isSafeReadyOnChain(walletContext: WalletContext | undefined, cha
   const chainState = walletContext?.safeDeploymentState?.[chainId]
   if (!chainState) return false
   return chainState.isDeployed && chainState.modulesEnabled && chainState.domainVerifierSet
+}
+
+/** Safe exists on chain (vault deposit/withdraw) — does not require extension modules. */
+export function isSafeDeployedOnChain(walletContext: WalletContext | undefined, chainId: number): boolean {
+  const chainState = walletContext?.safeDeploymentState?.[chainId]
+  if (!chainState) return false
+  return chainState.isDeployed && !!chainState.safeAddress
 }
 
 export async function getSafeAddressForChain(

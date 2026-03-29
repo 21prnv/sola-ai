@@ -1,4 +1,5 @@
-import { SOLA_RANGO_TX_ENVELOPE_V, type SolaRangoTxEnvelopeV1, type SolaRangoTxRangoType } from './types'
+import { SOLA_RANGO_TX_ENVELOPE_V } from './types'
+import type { SolaRangoTxEnvelopeV1, SolaRangoTxRangoType } from './types'
 
 const RANGO_TYPES = new Set<SolaRangoTxRangoType>(['COSMOS', 'TRON', 'TRANSFER', 'STARKNET', 'TON'])
 

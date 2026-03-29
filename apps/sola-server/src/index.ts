@@ -107,66 +107,6 @@ export {
 } from './tools/getCategories'
 export { getNewCoinsTool, executeGetNewCoins, type GetNewCoinsInput, type GetNewCoinsOutput } from './tools/getNewCoins'
 export {
-  createLimitOrderTool,
-  executeCreateLimitOrder,
-  type CreateLimitOrderInput,
-  type CreateLimitOrderOutput,
-  type LimitOrderSummary,
-} from './tools/limitOrder'
-export {
-  getLimitOrdersTool,
-  executeGetLimitOrders,
-  type GetLimitOrdersInput,
-  type GetLimitOrdersOutput,
-} from './tools/limitOrder'
-export {
-  cancelLimitOrderTool,
-  executeCancelLimitOrder,
-  type CancelLimitOrderInput,
-  type CancelLimitOrderOutput,
-} from './tools/limitOrder'
-export {
-  createStopLossTool,
-  executeCreateStopLoss,
-  type CreateStopLossInput,
-  type CreateStopLossOutput,
-  type StopLossSummary,
-} from './tools/stopLoss'
-export {
-  getStopLossOrdersTool,
-  executeGetStopLossOrders,
-  type GetStopLossOrdersInput,
-  type GetStopLossOrdersOutput,
-} from './tools/stopLoss'
-export {
-  cancelStopLossTool,
-  executeCancelStopLoss,
-  type CancelStopLossInput,
-  type CancelStopLossOutput,
-} from './tools/stopLoss'
-export {
-  createTwapTool,
-  executeCreateTwap,
-  createTwapSchema,
-  type CreateTwapInput,
-  type CreateTwapOutput,
-  type TwapSummary,
-} from './tools/twap'
-export {
-  getTwapOrdersTool,
-  executeGetTwapOrders,
-  getTwapOrdersSchema,
-  type GetTwapOrdersInput,
-  type GetTwapOrdersOutput,
-} from './tools/twap'
-export {
-  cancelTwapTool,
-  executeCancelTwap,
-  cancelTwapSchema,
-  type CancelTwapInput,
-  type CancelTwapOutput,
-} from './tools/twap'
-export {
   vaultBalanceTool,
   executeVaultBalance,
   vaultBalanceSchema,
@@ -196,7 +136,12 @@ export {
   type VaultWithdrawAllOutput,
 } from './tools/vault'
 export type { ActiveOrderSummary } from './utils/walletContextSimple'
-export type { CowOrderSigningData, CowEIP712Domain, CowEIP712Types } from './lib/cow/types'
+export {
+  CHAIN_ID_TO_NETWORK,
+  NETWORK_TO_CHAIN_ID,
+  VAULT_EVM_CHAIN_IDS,
+  vaultSupportedNetworkSchema,
+} from './lib/vaultNetworks'
 export type {
   TrimmedTrendingCoin,
   TrimmedGainerLoserCoin,

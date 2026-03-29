@@ -41,10 +41,8 @@ export function useApprovedChains(): string[] {
       const chainIds = new Set<string>()
 
       for (const wallet of userWallets) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- SDK type variance
         if (isSolanaWallet(wallet)) {
           chainIds.add(SOLANA_CAIP_ID)
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- SDK type variance
         } else if (isEthereumWallet(wallet)) {
           const evmChains = await getApprovedChainsForEvmWallet(wallet)
           evmChains.forEach(c => chainIds.add(c))

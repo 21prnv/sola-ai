@@ -227,14 +227,14 @@ export const transactionHistoryToolInput = z.object({
     .array(z.string())
     .optional()
     .describe(
-      'Only include transactions involving these asset symbols (case-insensitive). Examples: ["FOX", "ETH"], ["USDC", "USDT", "DAI"]. Matches against token transfer symbols and native assets.'
+      'Only include transactions involving these asset symbols (case-insensitive). Examples: ["LINK", "ETH"], ["USDC", "USDT", "DAI"]. Matches against token transfer symbols and native assets.'
     ),
 
   excludeAssets: z
     .array(z.string())
     .optional()
     .describe(
-      'Exclude transactions involving these asset symbols (case-insensitive). Examples: ["FOX"], ["USDC"]. If both includeAssets and excludeAssets are specified, includeAssets is applied first, then excludeAssets.'
+      'Exclude transactions involving these asset symbols (case-insensitive). Examples: ["LINK"], ["USDC"]. If both includeAssets and excludeAssets are specified, includeAssets is applied first, then excludeAssets.'
     ),
 
   sortBy: z

@@ -1,15 +1,6 @@
 import type {
   AssetWithMarketData,
-  CancelLimitOrderOutput,
-  CancelStopLossOutput,
-  CancelTwapOutput,
   CheckWalletCapabilitiesOutput,
-  CreateLimitOrderOutput,
-  CreateStopLossOutput,
-  CreateTwapOutput,
-  GetLimitOrdersOutput,
-  GetStopLossOrdersOutput,
-  GetTwapOrdersOutput,
   InitiateSwapOutput,
   PortfolioOutput,
   ReceiveOutput,
@@ -38,15 +29,6 @@ export type ToolOutputMap = {
   getTrendingTokensTool: { tokens: TrimmedTrendingCoin[] }
   getTopGainersLosersTool: { gainers: TrimmedGainerLoserCoin[]; losers: TrimmedGainerLoserCoin[]; duration: string }
   getNewCoinsTool: { coins: TrimmedNewCoin[] }
-  createLimitOrderTool: CreateLimitOrderOutput
-  getLimitOrdersTool: GetLimitOrdersOutput
-  cancelLimitOrderTool: CancelLimitOrderOutput
-  createStopLossTool: CreateStopLossOutput
-  getStopLossOrdersTool: GetStopLossOrdersOutput
-  cancelStopLossTool: CancelStopLossOutput
-  createTwapTool: CreateTwapOutput
-  getTwapOrdersTool: GetTwapOrdersOutput
-  cancelTwapTool: CancelTwapOutput
   checkWalletCapabilitiesTool: CheckWalletCapabilitiesOutput
   vaultDepositTool: VaultDepositOutput
   vaultWithdrawTool: VaultWithdrawOutput

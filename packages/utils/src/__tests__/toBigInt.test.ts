@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import BigNumber from 'bignumber.js'
+import { describe, expect, test } from 'bun:test'
 
 import { toBigInt, toBaseUnit } from '../index'
 

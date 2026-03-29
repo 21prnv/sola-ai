@@ -80,8 +80,8 @@ export function CheckWalletCapabilitiesUI({ toolPart }: ToolUIComponentProps<'ch
               <div className="flex items-start gap-2">
                 <Lock className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-200">
-                  A Safe smart account will be deployed automatically when you create your first stop-loss or automated
-                  order. Works with any connected wallet.
+                  Deploy a Safe on Ethereum, Gnosis, or Arbitrum to use vault deposit and withdraw. Use your wallet’s
+                  Safe flow or deploy from the app when available.
                 </div>
               </div>
             </div>

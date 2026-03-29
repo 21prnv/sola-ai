@@ -1,11 +1,6 @@
-import type { CreateLimitOrderOutput, InitiateSwapOutput, SendOutput } from '@sola-ai/server'
+import type { InitiateSwapOutput, SendOutput } from '@sola-ai/server'
 
-import type {
-  ActivityItem,
-  LimitOrderActivityDetails,
-  SendActivityDetails,
-  SwapActivityDetails,
-} from '@/types/activity'
+import type { ActivityItem, SendActivityDetails, SwapActivityDetails } from '@/types/activity'
 
 import type { AnyToolExecutionState, ToolExecutionStateFor } from './executionState'
 
@@ -16,8 +11,6 @@ export function normalizeToActivityItem(tx: AnyToolExecutionState): ActivityItem
       return normalizeSwapActivity(tx)
     case 'sendTool':
       return normalizeSendActivity(tx)
-    case 'createLimitOrderTool':
-      return normalizeLimitOrderActivity(tx)
     default:
       return null
   }
@@ -78,7 +71,7 @@ function normalizeSendActivity(tx: ToolExecutionStateFor<'sendTool'>): ActivityI
     from: output.summary.from,
     to: output.summary.to,
     fee: output.summary.estimatedFeeUsd,
-    feeSymbol: output.summary.estimatedFeeSymbol,
+    feeSymbol: output.summary.estimatedFeeSymbol ?? undefined,
   }
 
   return {
@@ -87,38 +80,6 @@ function normalizeSendActivity(tx: ToolExecutionStateFor<'sendTool'>): ActivityI
     timestamp: tx.timestamp,
     txHash,
     chainId: output.sendData.chainId,
-    network: output.summary.network,
-    details,
-  }
-}
-
-function normalizeLimitOrderActivity(tx: ToolExecutionStateFor<'createLimitOrderTool'>): ActivityItem | null {
-  const output = tx.toolOutput as CreateLimitOrderOutput | undefined
-  const orderId = tx.meta.orderId
-
-  if (!output?.summary || !orderId) return null
-
-  const details: LimitOrderActivityDetails = {
-    sellAsset: {
-      symbol: output.summary.sellAsset.symbol,
-      amount: output.summary.sellAsset.amount,
-    },
-    buyAsset: {
-      symbol: output.summary.buyAsset.symbol,
-      estimatedAmount: output.summary.buyAsset.estimatedAmount,
-    },
-    limitPrice: output.summary.limitPrice,
-    expiresAt: output.summary.expiresAt,
-    provider: output.summary.provider,
-    trackingUrl: `https://explorer.cow.fi/orders/${orderId}`,
-  }
-
-  return {
-    id: tx.toolCallId,
-    type: 'limit_order',
-    timestamp: tx.timestamp,
-    orderId,
-    chainId: `eip155:${output.orderParams.chainId}`,
     network: output.summary.network,
     details,
   }

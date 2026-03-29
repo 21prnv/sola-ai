@@ -3,22 +3,22 @@ import { fromBaseUnit, toBigInt, toBaseUnit } from '@sola-ai/utils'
 import { encodeFunctionData, erc20Abi, getAddress } from 'viem'
 import { z } from 'zod'
 
-import { cowSupportedNetworkSchema, NETWORK_TO_CHAIN_ID } from '../../lib/cow/types'
+import { NETWORK_TO_CHAIN_ID, vaultSupportedNetworkSchema } from '../../lib/vaultNetworks'
 import { isNativeToken, resolveAsset } from '../../utils/assetHelpers'
 import { getBalance } from '../../utils/balanceHelpers'
 import { getCommittedAmountForToken } from '../../utils/committedBalances'
-import { getAddressForChain, getSafeAddressForChain, isSafeReadyOnChain } from '../../utils/walletContextSimple'
+import { getAddressForChain, getSafeAddressForChain, isSafeDeployedOnChain } from '../../utils/walletContextSimple'
 import type { WalletContext } from '../../utils/walletContextSimple'
 
 export const vaultWithdrawSchema = z.object({
   asset: z.string().describe('Token symbol or name to withdraw (e.g., "WETH", "USDC")'),
   amount: z.string().describe('Amount to withdraw in human-readable format (e.g., "1" for 1 WETH)'),
-  network: cowSupportedNetworkSchema.describe('Network for the withdrawal'),
+  network: vaultSupportedNetworkSchema.describe('Network for the withdrawal'),
   ignoreActiveOrders: z
     .boolean()
     .optional()
     .default(false)
-    .describe('If true, withdraw even if funds are committed to active TWAP/stop-loss orders (may break those orders)'),
+    .describe('If true, withdraw even if funds appear committed in the local registry (legacy conditional orders)'),
 })
 
 export type VaultWithdrawInput = z.infer<typeof vaultWithdrawSchema>
@@ -42,10 +42,10 @@ export async function executeVaultWithdraw(
   const safeAddress = await getSafeAddressForChain(walletContext, chainId)
   if (!safeAddress) {
     throw new Error(
-      'No Safe vault found. A Safe smart account is deployed automatically when you create your first automated order.'
+      'No Safe vault found. Deploy a Safe on this chain first (e.g. from the wallet / Safe flow in the app).'
     )
   }
-  if (!isSafeReadyOnChain(walletContext, chainId)) {
+  if (!isSafeDeployedOnChain(walletContext, chainId)) {
     throw new Error(
       `Safe is not deployed on ${input.network}. Cannot withdraw on a chain where the Safe doesn't exist.`
     )
@@ -69,7 +69,7 @@ export async function executeVaultWithdraw(
 
   if (!isNative) {
     const tokenAddress = fromAssetId(asset.assetId).assetReference
-    const committedAmount = await getCommittedAmountForToken(walletContext, safeAddress, chainId, tokenAddress)
+    const committedAmount = getCommittedAmountForToken(walletContext, safeAddress, chainId, tokenAddress)
 
     if (committedAmount > 0n) {
       const available = balanceBigInt > committedAmount ? balanceBigInt - committedAmount : 0n
@@ -79,14 +79,14 @@ export async function executeVaultWithdraw(
         if (requestedBigInt > available) {
           const availableHuman = fromBaseUnit(available.toString(), asset.precision)
           throw new Error(
-            `${committedHuman} ${asset.symbol} is committed to active TWAP/stop-loss orders. ` +
+            `${committedHuman} ${asset.symbol} is shown as committed in the local order registry. ` +
               `You can withdraw up to ${availableHuman} ${asset.symbol} without affecting active orders. ` +
               `To withdraw the full amount anyway (which may break active orders), set ignoreActiveOrders to true.`
           )
         }
       } else {
         warnings.push(
-          `Warning: ${committedHuman} ${asset.symbol} is committed to active TWAP/stop-loss orders. ` +
+          `Warning: ${committedHuman} ${asset.symbol} is shown as committed in the local order registry. ` +
             `This withdrawal may cause those orders to fail.`
         )
       }
@@ -137,7 +137,7 @@ IMPORTANT: Do NOT write any response text alongside this tool call. Wait for the
 
 This executes a Safe transaction (you sign as the Safe owner) to transfer tokens from the vault to your EOA wallet.
 
-ACTIVE ORDER PROTECTION: If the token has funds committed to active TWAP/stop-loss orders, the withdrawal will be blocked unless the user explicitly sets ignoreActiveOrders to true. Ask the user whether they want to withdraw only excess funds or force-withdraw everything.`,
+REGISTRY COMMITMENTS: If the local order registry shows open commitments for this token, withdrawal may be blocked unless ignoreActiveOrders is true.`,
   inputSchema: vaultWithdrawSchema,
   execute: executeVaultWithdraw,
 }

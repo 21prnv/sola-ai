@@ -1,3 +1,4 @@
+import type { OfflineSigner } from '@cosmjs/proto-signing'
 import type { StdFee } from '@cosmjs/stargate'
 import { SigningStargateClient } from '@cosmjs/stargate'
 
@@ -12,8 +13,11 @@ type CosmosMessageShape = {
 }
 
 export async function sendCosmosRangoTx(from: string, tx: Record<string, unknown>): Promise<string> {
-  const keplr = (window as Window & { keplr?: { enable: (c: string) => Promise<void>; getOfflineSigner: (c: string) => any } })
-    .keplr
+  const keplr = (
+    window as Window & {
+      keplr?: { enable: (c: string) => Promise<void>; getOfflineSigner: (c: string) => OfflineSigner }
+    }
+  ).keplr
   if (!keplr) {
     throw new Error('Install Keplr (or a Keplr-compatible wallet) to sign Cosmos routes from Rango.')
   }

@@ -76,7 +76,7 @@ async function fetchSingleNetworkHistory(
     throw new Error(`Unchained URL not configured for ${network}`)
   }
 
-  let allRawTxs: cache.RawTransaction[] = []
+  const allRawTxs: cache.RawTransaction[] = []
   let cursor: string | undefined
   let pageCount = 0
 

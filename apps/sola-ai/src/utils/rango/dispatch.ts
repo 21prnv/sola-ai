@@ -4,8 +4,8 @@ import { parseSolaRangoEnvelope } from './parseEnvelope'
 import { sendCosmosRangoTx } from './sendCosmosRangoTx'
 import { sendStarknetRangoTx } from './sendStarknetRangoTx'
 import { sendTonRangoTx } from './sendTonRangoTx'
-import { sendTronRangoTx } from './sendTronRangoTx'
 import { sendTransferRangoTx } from './sendTransferRangoTx'
+import { sendTronRangoTx } from './sendTronRangoTx'
 
 /**
  * If `data` is a Sola Rango v1 envelope, sign & broadcast with the right browser wallet.

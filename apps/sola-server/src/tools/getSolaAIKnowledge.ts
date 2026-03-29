@@ -2,20 +2,11 @@ import { z } from 'zod'
 
 import { solaAIKnowledge } from '../knowledge/solaai'
 
-const CATEGORIES = [
-  'company',
-  'platform',
-  'swappers',
-  'chains',
-  'staking',
-  'fox-token',
-  'features',
-  'mobile-app',
-] as const
+const CATEGORIES = ['company', 'platform', 'swappers', 'chains', 'staking', 'features', 'mobile-app'] as const
 
 export const getSolaAIKnowledgeSchema = z.object({
   category: z
-    .enum(['company', 'platform', 'swappers', 'chains', 'staking', 'fox-token', 'features', 'mobile-app', 'all'])
+    .enum(['company', 'platform', 'swappers', 'chains', 'staking', 'features', 'mobile-app', 'all'])
     .optional()
     .describe(
       'The category of knowledge to retrieve. If not specified, will try to return relevant information based on context.'
