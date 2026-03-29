@@ -3,7 +3,7 @@ import { useDynamicContext, useUserWallets } from '@dynamic-labs/sdk-react-core'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 
-import { deploySafe, discoverSafeOnChain, enableComposableCowModules, predictSafeAddress } from '@/lib/safe'
+import { deploySafe, discoverSafeOnChain, predictSafeAddress } from '@/lib/safe'
 import type { SafeDeploymentResult } from '@/lib/safe'
 import { findEvmWallet } from '@/lib/walletUtils'
 import { useSafeStore } from '@/stores/safeStore'
@@ -19,15 +19,13 @@ export interface UseSafeAccountResult {
   safeAddress: string | undefined
   isDeployed: boolean
   isModulesEnabled: boolean
-  isSafeReady: boolean // deployed + modules enabled on any chain
+  isSafeReady: boolean
   deployedChainIds: number[]
   safeDeploymentState: Record<number, SafeChainDeployment>
   deploySafe: (chainId: number) => Promise<SafeDeploymentResult>
-  enableModules: (chainId: number) => Promise<string>
 }
 
 export function useSafeAccount(): UseSafeAccountResult {
-  // Use same EVM wallet selection as useWalletConnection: prefer primaryWallet if EVM, else first EVM
   const { primaryWallet } = useDynamicContext()
   const userWallets = useUserWallets()
   const evmWallet = useMemo(() => {
@@ -42,7 +40,6 @@ export function useSafeAccount(): UseSafeAccountResult {
     return evmAddress ? (deployments[evmAddress.toLowerCase()] ?? {}) : {}
   }, [evmAddress, deployments])
 
-  // Predict Safe address via CREATE2 — deterministic, never changes for a given owner
   const predictedAddressQuery = useQuery({
     queryKey: ['safe-predicted-address', evmAddress],
     queryFn: async () => {
@@ -54,7 +51,6 @@ export function useSafeAccount(): UseSafeAccountResult {
     staleTime: Infinity,
   })
 
-  // Discover deployed Safes on-chain when the store is empty for this owner
   useQuery({
     queryKey: ['safe-discovery', evmAddress],
     queryFn: () => discoverSafeOnChain(evmAddress!),
@@ -63,7 +59,6 @@ export function useSafeAccount(): UseSafeAccountResult {
     retry: 1,
   })
 
-  // Check if Safe is deployed + modules enabled on any chain
   const deploymentInfo = useMemo(() => {
     const entries = Object.values(safeState)
     const deployed = entries.some(s => s.isDeployed)
@@ -86,7 +81,6 @@ export function useSafeAccount(): UseSafeAccountResult {
     return { deployed, modulesEnabled, deployedChainIds, perChainState }
   }, [safeState])
 
-  // Primary Safe address: first deployed address, or predicted address for new users
   const safeAddress = useMemo(() => {
     const storedEntry = Object.values(safeState).find(s => s.safeAddress)
     return storedEntry?.safeAddress ?? predictedAddressQuery.data
@@ -102,27 +96,13 @@ export function useSafeAccount(): UseSafeAccountResult {
     [evmAddress, evmWallet]
   )
 
-  const handleEnableModules = useCallback(
-    async (chainId: number): Promise<string> => {
-      if (!evmAddress || !evmWallet) throw new Error('No EVM wallet connected')
-
-      const chainState = safeState[chainId]
-      if (!chainState?.safeAddress) throw new Error(`Safe not deployed on chain ${chainId}`)
-
-      const walletClient = await evmWallet.getWalletClient()
-      return await enableComposableCowModules(chainState.safeAddress, chainId, evmAddress, walletClient)
-    },
-    [evmAddress, evmWallet, safeState]
-  )
-
   return {
     safeAddress,
     isDeployed: deploymentInfo.deployed,
     isModulesEnabled: deploymentInfo.modulesEnabled,
-    isSafeReady: deploymentInfo.deployed && deploymentInfo.modulesEnabled,
+    isSafeReady: deploymentInfo.deployed,
     deployedChainIds: deploymentInfo.deployedChainIds,
     safeDeploymentState: deploymentInfo.perChainState,
     deploySafe: handleDeploySafe,
-    enableModules: handleEnableModules,
   }
 }

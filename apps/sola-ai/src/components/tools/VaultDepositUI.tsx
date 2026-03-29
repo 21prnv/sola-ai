@@ -1,5 +1,5 @@
-import type { VaultDepositOutput } from '@sola-ai/server'
 import { fromChainId } from '@sola-ai/caip'
+import type { VaultDepositOutput } from '@sola-ai/server'
 import { toast } from 'sonner'
 
 import { Execution } from '@/components/Execution'

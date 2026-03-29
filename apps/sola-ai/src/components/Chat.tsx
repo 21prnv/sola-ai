@@ -13,8 +13,8 @@ import { UserMessage } from './UserMessage'
 
 const WELCOME_SUGGESTIONS = [
   'What is my USDC balance on Arbitrum?',
-  'Swap half my USDC on arb to FOX',
-  'Give me some info about FOX on Arb',
+  'Swap half my USDC on arb to ETH',
+  'Give me some info about LINK on Arb',
 ]
 
 export function Chat() {

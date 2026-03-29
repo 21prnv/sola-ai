@@ -6,12 +6,7 @@ import { isSolanaWallet } from '@dynamic-labs/solana'
 import { isStarknetWallet } from '@dynamic-labs/starknet'
 import { isSuiWallet } from '@dynamic-labs/sui'
 import { isTronWallet } from '@dynamic-labs/tron'
-import {
-  btcChainId,
-  cosmosChainId,
-  suiChainId,
-  tronChainId,
-} from '@sola-ai/caip'
+import { btcChainId, cosmosChainId, suiChainId, tronChainId } from '@sola-ai/caip'
 
 /** Starknet mainnet (CAIP-2 style; matches common asset / Rango usage). */
 export const STARKNET_SN_MAIN_CAIP = 'starknet:SN_MAIN'

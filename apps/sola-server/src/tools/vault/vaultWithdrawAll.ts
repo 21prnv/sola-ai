@@ -3,7 +3,7 @@ import { AssetService, fromBaseUnit, getFeeAssetIdByChainId, toBigInt, toBaseUni
 import { encodeFunctionData, erc20Abi, getAddress } from 'viem'
 import { z } from 'zod'
 
-import { NETWORK_TO_CHAIN_ID } from '../../lib/cow/types'
+import { NETWORK_TO_CHAIN_ID } from '../../lib/vaultNetworks'
 import { getAllCommittedAmounts } from '../../utils/committedBalances'
 import { getSafeAddressForChain } from '../../utils/walletContextSimple'
 import type { WalletContext } from '../../utils/walletContextSimple'
@@ -20,7 +20,7 @@ export const vaultWithdrawAllSchema = z.object({
     .boolean()
     .optional()
     .default(false)
-    .describe('If true, withdraw even if funds are committed to active TWAP/stop-loss orders (may break those orders)'),
+    .describe('If true, withdraw even if the local registry marks funds as committed (legacy)'),
 })
 
 export type VaultWithdrawAllInput = z.infer<typeof vaultWithdrawAllSchema>
@@ -113,7 +113,7 @@ export async function executeVaultWithdrawAll(
     const toAddress = walletContext?.connectedWallets?.[caipChainId]?.address
     if (!toAddress) continue
 
-    const committedAmounts = await getAllCommittedAmounts(walletContext, safeAddress, numericChainId)
+    const committedAmounts = getAllCommittedAmounts(walletContext, safeAddress, numericChainId)
 
     const filteredBalances: VaultBalanceEntry[] = []
     const transactions: { to: string; data: string; value: string }[] = []
@@ -165,7 +165,7 @@ export async function executeVaultWithdrawAll(
           transactions.push(buildTransferTransaction(adjustedBalance, toAddress, numericChainId))
         } else {
           warnings.push(
-            `Warning: ${committedHuman} ${balance.symbol} is committed to active TWAP/stop-loss orders. ` +
+            `Warning: ${committedHuman} ${balance.symbol} is marked committed in the local registry. ` +
               `This withdrawal may cause those orders to fail.`
           )
           filteredBalances.push(balance)
@@ -201,8 +201,8 @@ export async function executeVaultWithdrawAll(
   if (withdrawals.length === 0) {
     if (warnings.length > 0) {
       throw new Error(
-        `All vault tokens are committed to active TWAP/stop-loss orders. ` +
-          `To withdraw anyway (which may break active orders), set ignoreActiveOrders to true.`
+        `All vault tokens are marked committed in the local registry. ` +
+          `To withdraw anyway, set ignoreActiveOrders to true.`
       )
     }
     throw new Error('Could not build withdrawal transactions. Please check your wallet connection.')
@@ -227,7 +227,7 @@ Use this tool when:
 - User asks to "withdraw everything" or "move all funds out"
 - After fulfilled orders, user wants all vault funds back
 
-ACTIVE ORDER PROTECTION: Tokens committed to active TWAP/stop-loss orders are excluded by default. Only excess funds are withdrawn. If the user explicitly wants everything (which may break orders), set ignoreActiveOrders to true.`,
+REGISTRY: Tokens marked committed in the local registry are excluded by default. Set ignoreActiveOrders to true to withdraw everything.`,
   inputSchema: vaultWithdrawAllSchema,
   execute: executeVaultWithdrawAll,
 }

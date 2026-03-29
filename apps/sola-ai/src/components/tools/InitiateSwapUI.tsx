@@ -9,7 +9,7 @@ import { useWalletConnection } from '@/hooks/useWalletConnection'
 import { bnOrZero } from '@/lib/bignumber'
 import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallets'
 import { StepStatus } from '@/lib/stepUtils'
-import { firstFourLastFour } from '@/lib/utils'
+import { firstFourLastFour, cn } from '@/lib/utils'
 import { fetchSwapBuild } from '@/services/swapBuildService'
 import { useChatStore } from '@/stores/chatStore'
 import { useOrderStore } from '@/stores/orderStore'
@@ -20,7 +20,6 @@ import { TxStepCard } from '../ui/TxStepCard'
 
 import type { ToolUIComponentProps } from './toolUIHelpers'
 import { SWAP_STEPS, useSwapExecution } from './useSwapExecution'
-import { cn } from '@/lib/utils'
 
 type QuoteOption = NonNullable<InitiateSwapOutput['quoteOptions']>[number]
 
@@ -93,8 +92,7 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
         sellAmountCryptoPrecision: routeCtx.sellAmountCrypto,
         buyAmountCryptoPrecision: selectedQuote.outputAmount,
         sellAmountUsd: undefined,
-        buyAmountUsd:
-          selectedQuote.outputAmountUsd != null ? String(selectedQuote.outputAmountUsd) : undefined,
+        buyAmountUsd: selectedQuote.outputAmountUsd != null ? String(selectedQuote.outputAmountUsd) : undefined,
         approvalTarget: '',
         sellAccount: routeCtx.sellAccount,
         buyAccount: routeCtx.buyAccount,
@@ -225,11 +223,7 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-3 py-2.5 text-xs text-muted-foreground">
                               <span className="inline-flex items-center gap-1">
                                 <Fuel className="size-3.5 shrink-0 opacity-70" aria-hidden />
-                                {opt.feeUsd != null ? (
-                                  <Amount.Fiat value={String(opt.feeUsd)} />
-                                ) : (
-                                  '—'
-                                )}
+                                {opt.feeUsd != null ? <Amount.Fiat value={String(opt.feeUsd)} /> : '—'}
                               </span>
                               <span className="inline-flex items-center gap-1">
                                 <Clock className="size-3.5 shrink-0 opacity-70" aria-hidden />

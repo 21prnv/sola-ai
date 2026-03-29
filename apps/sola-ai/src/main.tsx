@@ -1,6 +1,5 @@
-import { Buffer } from 'buffer/'
-
 import * as Sentry from '@sentry/react'
+import { Buffer } from 'buffer/'
 import mixpanel from 'mixpanel-browser'
 import * as ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -10,7 +9,8 @@ import { isUserCancellation } from '@/utils/walletErrors'
 import App from './app/app'
 
 // Polyfill Buffer for Solana SDK (buffer package vs DOM BufferConstructor types differ)
-;(window as unknown as { Buffer: unknown }).Buffer = Buffer
+const rootWindow = window as typeof window & { Buffer: typeof Buffer }
+rootWindow.Buffer = Buffer
 
 const isProduction = import.meta.env.PROD
 

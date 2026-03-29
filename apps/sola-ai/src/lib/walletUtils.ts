@@ -9,21 +9,17 @@ import type { SolanaWallet } from '@dynamic-labs/solana-core'
 type UserWallet = ReturnType<typeof useUserWallets>[number]
 
 export function findEvmWallet(wallets: UserWallet[]): EthereumWallet | undefined {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return wallets.find((w): w is EthereumWallet => isEthereumWallet(w))
 }
 
 export function findSolanaWallet(wallets: UserWallet[]): SolanaWallet | undefined {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return wallets.find((w): w is SolanaWallet => isSolanaWallet(w))
 }
 
 export function filterEvmWallets(wallets: UserWallet[]): EthereumWallet[] {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return wallets.filter((w): w is EthereumWallet => isEthereumWallet(w))
 }
 
 export function filterSolanaWallets(wallets: UserWallet[]): SolanaWallet[] {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return wallets.filter((w): w is SolanaWallet => isSolanaWallet(w))
 }

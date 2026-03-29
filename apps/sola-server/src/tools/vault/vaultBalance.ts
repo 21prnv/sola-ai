@@ -44,9 +44,7 @@ export async function executeVaultBalance(
     const numericChainId = Number(networkToChainIdMap[input.network].split(':').pop())
     const safeAddress = await getSafeAddressForChain(walletContext, numericChainId)
     if (!safeAddress) {
-      throw new Error(
-        `No Safe vault found on ${input.network}. A Safe smart account is deployed automatically when you create your first automated order.`
-      )
+      throw new Error(`No Safe vault found on ${input.network}. Deploy a Safe on this network to use the vault.`)
     }
     networksWithAddresses.push({
       network: input.network,
@@ -57,9 +55,7 @@ export async function executeVaultBalance(
     // Query all deployed chains
     const deploymentState = walletContext?.safeDeploymentState
     if (!deploymentState || Object.keys(deploymentState).length === 0) {
-      throw new Error(
-        'No Safe vault found. A Safe smart account is deployed automatically when you create your first automated order.'
-      )
+      throw new Error('No Safe vault found. Deploy a Safe on this network to use the vault.')
     }
     for (const [numericChainIdStr, state] of Object.entries(deploymentState)) {
       if (!state.safeAddress || !state.isDeployed) continue
@@ -73,9 +69,7 @@ export async function executeVaultBalance(
       })
     }
     if (networksWithAddresses.length === 0) {
-      throw new Error(
-        'No Safe vault found on any network. A Safe smart account is deployed automatically when you create your first automated order.'
-      )
+      throw new Error('No Safe vault found on any network. Deploy a Safe on this network to use the vault.')
     }
   }
 
@@ -141,7 +135,7 @@ export const vaultBalanceTool = {
 
 No UI card - format and present the data in your response.
 
-Shows what tokens are currently held in the Safe smart account. Tokens must be deposited into the Safe before automated orders (stop-loss, TWAP, DCA) can execute.`,
+Shows token balances held in the Safe vault.`,
   inputSchema: vaultBalanceSchema,
   execute: executeVaultBalance,
 }

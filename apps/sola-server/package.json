@@ -16,7 +16,8 @@
     "dev": "bun --env-file=../../.env --watch src/server.ts",
     "build": "bun build src/server.ts --outdir dist --target bun",
     "start": "bun run dist/server.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.41",

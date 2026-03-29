@@ -1,4 +1,5 @@
-import { CHAIN_NAMESPACE, CHAIN_REFERENCE, fromChainId, type ChainId } from '@sola-ai/caip'
+import { CHAIN_NAMESPACE, CHAIN_REFERENCE, fromChainId } from '@sola-ai/caip'
+import type { ChainId } from '@sola-ai/caip'
 import type { RangoClient } from 'rango-sdk-basic'
 import type { BlockchainMeta } from 'rango-types/basicApi'
 import { TransactionType } from 'rango-types/basicApi'
@@ -75,10 +76,7 @@ export function resolveRangoBlockchainName(blockchains: BlockchainMeta[], caipCh
   if (chainNamespace === CHAIN_NAMESPACE.CosmosSdk) {
     const match = blockchains.find(
       b =>
-        b.type === TransactionType.COSMOS &&
-        b.enabled &&
-        b.chainId != null &&
-        (b.chainId as string) === chainReference
+        b.type === TransactionType.COSMOS && b.enabled && b.chainId != null && (b.chainId as string) === chainReference
     )
     if (match) return match.name
     throw new Error(`Rango: no enabled Cosmos chain in meta for "${chainReference}"`)
@@ -137,9 +135,7 @@ export function resolveRangoBlockchainName(blockchains: BlockchainMeta[], caipCh
     const list = blockchains.filter(b => b.type === TransactionType.STARKNET && b.enabled) as Array<
       BlockchainMeta & { chainId: string }
     >
-    const match = list.find(
-      s => s.chainId === chainReference || evmChainIdEquals(chainReference, s.chainId)
-    )
+    const match = list.find(s => s.chainId === chainReference || evmChainIdEquals(chainReference, s.chainId))
     if (match) return match.name
     if (list.length === 1) return list[0].name
     throw new Error(`Rango: could not map Starknet chain ${caipChainId}`)

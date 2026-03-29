@@ -32,7 +32,7 @@ interface SafeVaultDepositResult {
 export async function calculateSafeVaultDeposit(params: SafeVaultDepositParams): Promise<SafeVaultDepositResult> {
   const { walletContext, safeAddress, sellAsset, sellAmountBaseUnit, evmChainId, sellTokenAddress } = params
 
-  const committedAmount = await getCommittedAmountForToken(walletContext, safeAddress, evmChainId, sellTokenAddress)
+  const committedAmount = getCommittedAmountForToken(walletContext, safeAddress, evmChainId, sellTokenAddress)
 
   const totalNeeded = committedAmount + toBigInt(sellAmountBaseUnit)
 

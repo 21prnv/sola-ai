@@ -11,13 +11,8 @@ import { validateAddress } from '../utils/addressValidation'
 import { resolveAsset } from '../utils/assetHelpers'
 import { validateSufficientBalance } from '../utils/balanceHelpers'
 import { isEvmChain } from '../utils/chains/helpers'
-import {
-  getRangoQuoteAlternatives,
-  getRangoSwap,
-  type GetRangoSwapOptions,
-  type RangoQuoteOptionSummary,
-  type RangoSwapRate,
-} from '../utils/getRangoSwap'
+import { getRangoQuoteAlternatives, getRangoSwap } from '../utils/getRangoSwap'
+import type { GetRangoSwapOptions, RangoQuoteOptionSummary, RangoSwapRate } from '../utils/getRangoSwap'
 import { networkToFeeSymbol } from '../utils/networkHelpers'
 import { createTransaction } from '../utils/transactionHelpers'
 import { getAddressForChain, getAddressForChainOptional } from '../utils/walletContextSimple'
@@ -252,8 +247,8 @@ async function finalizeSwapPreparationFromResolved(
   await validateSufficientBalance(sellAddress, sellAsset, sellAmountCrypto)
 
   const approvalTx = needsApproval
-    ? bestRate.approvalTxOverride ??
-      buildApprovalTransaction(true, sellAsset, bestRate.approvalTarget, sellAmountCrypto, sellAddress)
+    ? (bestRate.approvalTxOverride ??
+      buildApprovalTransaction(true, sellAsset, bestRate.approvalTarget, sellAmountCrypto, sellAddress))
     : undefined
 
   const swapTx = buildSwapTransaction(bestRate)
@@ -290,9 +285,7 @@ async function finalizeSwapPreparationFromResolved(
 
 function logInitiateSwapError(context: string, err: unknown, extra?: Record<string, unknown>): void {
   const base =
-    err instanceof Error
-      ? { message: err.message, name: err.name, stack: err.stack }
-      : { message: String(err) }
+    err instanceof Error ? { message: err.message, name: err.name, stack: err.stack } : { message: String(err) }
   console.error(`[initiateSwap] ${context}`, { ...base, ...extra })
 }
 
@@ -350,7 +343,12 @@ async function executeSwapInternal({
   }
 
   console.log('[initiateSwap] quote request', {
-    sell: { assetId: sellAsset.assetId, symbol: sellAsset.symbol, chainId: sellAsset.chainId, network: sellAsset.network },
+    sell: {
+      assetId: sellAsset.assetId,
+      symbol: sellAsset.symbol,
+      chainId: sellAsset.chainId,
+      network: sellAsset.network,
+    },
     buy: { assetId: buyAsset.assetId, symbol: buyAsset.symbol, chainId: buyAsset.chainId, network: buyAsset.network },
     sellAmountCrypto,
     sellAddress: sellAddress ?? '(none)',

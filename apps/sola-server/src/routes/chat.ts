@@ -18,7 +18,7 @@ import { format, getUnixTime } from 'date-fns'
 import type { Context } from 'hono'
 import { z } from 'zod'
 
-import { CHAIN_ID_TO_NETWORK } from '../lib/cow/types'
+import { CHAIN_ID_TO_NETWORK, VAULT_EVM_CHAIN_IDS } from '../lib/vaultNetworks'
 import { getModel, getProviderName } from '../models'
 import { checkWalletCapabilitiesTool } from '../tools/checkWalletCapabilities'
 import { lookupExternalAddressTool } from '../tools/getAccount'
@@ -28,24 +28,20 @@ import { getAssetsTool } from '../tools/getAssets'
 import { getCategoriesTool } from '../tools/getCategories'
 import { getHistoricalPricesTool } from '../tools/getHistoricalPrices'
 import { getNewCoinsTool } from '../tools/getNewCoins'
-import { getPriceFeedTokensTool } from '../tools/getPriceFeedTokens'
 import { getSolaAIKnowledgeTool } from '../tools/getSolaAIKnowledge'
 import { getTopGainersLosersTool } from '../tools/getTopGainersLosers'
 import { getTrendingPoolsTool } from '../tools/getTrendingPools'
 import { getTrendingTokensTool } from '../tools/getTrendingTokens'
 import { initiateSwapTool, initiateSwapUsdTool } from '../tools/initiateSwap'
-import { createLimitOrderTool, getLimitOrdersTool, cancelLimitOrderTool } from '../tools/limitOrder'
 import { mathCalculator } from '../tools/mathCalculator'
 import { portfolioTool } from '../tools/portfolio'
 import { receiveTool } from '../tools/receive'
 import { sendTool } from '../tools/send'
-import { createStopLossTool, getStopLossOrdersTool, cancelStopLossTool } from '../tools/stopLoss'
 import { switchNetworkTool } from '../tools/switchNetwork'
 import { transactionHistoryTool } from '../tools/transactionHistory'
-import { createTwapTool, getTwapOrdersTool, cancelTwapTool } from '../tools/twap'
 import { vaultBalanceTool, vaultDepositTool, vaultWithdrawTool, vaultWithdrawAllTool } from '../tools/vault'
 import { allSupportedChainIds, buildWalletContextFromChatFields } from '../utils/chatWalletContext'
-import type { ActiveOrderSummary, KnownTransaction, SafeChainDeployment, WalletContext } from '../utils/walletContextSimple'
+import type { SafeChainDeployment, WalletContext } from '../utils/walletContextSimple'
 
 /** CAIP chain ids for Dynamic multichain wallets (must match `collectDynamicMultichainAddresses` on the client). */
 const STARKNET_SN_MAIN_CAIP = 'starknet:SN_MAIN'
@@ -93,7 +89,6 @@ function buildTools(walletContext: WalletContext) {
       lookupExternalAddress: lookupExternalAddressTool,
       switchNetworkTool,
       getSolaAIKnowledgeTool,
-      getPriceFeedTokensTool,
       getTrendingTokensTool,
       getTopGainersLosersTool,
       getTrendingPoolsTool,
@@ -109,15 +104,6 @@ function buildTools(walletContext: WalletContext) {
         initiateSwapUsdTool,
         sendTool,
         receiveTool,
-        createLimitOrderTool,
-        getLimitOrdersTool,
-        cancelLimitOrderTool,
-        createStopLossTool,
-        getStopLossOrdersTool,
-        cancelStopLossTool,
-        createTwapTool,
-        getTwapOrdersTool,
-        cancelTwapTool,
         vaultBalanceTool,
         vaultDepositTool,
         vaultWithdrawTool,
@@ -172,8 +158,7 @@ function buildConnectedWalletsPrompt(
     const trimmed = addr?.trim()
     if (!trimmed) continue
     const label = dynamicMultichainChainLabels[chainId] ?? chainId
-    const short =
-      trimmed.length > 14 ? `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}` : trimmed
+    const short = trimmed.length > 14 ? `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}` : trimmed
     parts.push(`${label} (${short})`)
   }
 
@@ -211,10 +196,9 @@ function buildSafeStatusPrompt(safeDeploymentState?: Record<number, SafeChainDep
   const lines: string[] = []
   const readyChains: string[] = []
   const deployedNotReadyChains: string[] = []
-  const allCoWChains = [1, 100, 42161] // ethereum, gnosis, arbitrum
   const notDeployedChains: string[] = []
 
-  for (const chainId of allCoWChains) {
+  for (const chainId of VAULT_EVM_CHAIN_IDS) {
     const state = safeDeploymentState[chainId]
     const networkName = CHAIN_ID_TO_NETWORK[chainId] ?? `chain ${chainId}`
     if (state?.isDeployed && state.modulesEnabled && state.domainVerifierSet) {
@@ -237,7 +221,7 @@ function buildSafeStatusPrompt(safeDeploymentState?: Record<number, SafeChainDep
 
 function isSafeReadyOnAnyChain(safeDeploymentState?: Record<number, SafeChainDeployment>): boolean {
   if (!safeDeploymentState) return false
-  return Object.values(safeDeploymentState).some(s => s.isDeployed && s.modulesEnabled && s.domainVerifierSet)
+  return Object.values(safeDeploymentState).some(s => s.isDeployed && !!s.safeAddress)
 }
 
 function buildSystemPrompt(
@@ -262,7 +246,7 @@ When users ask about non-crypto topics, acknowledge their question briefly, then
 
 **Safe Wallet Status:**
 ${buildSafeStatusPrompt(safeDeploymentState)}
-${!isSafeReadyOnAnyChain(safeDeploymentState) ? '- No Safe deployed yet. Automation tools (stop-loss, TWAP/DCA, vault) will deploy one automatically on first use.' : '- Safe is ready for automation tools (stop-loss, TWAP/DCA, vault operations)'}
+${!isSafeReadyOnAnyChain(safeDeploymentState) ? '- No Safe deployed yet on vault chains (Ethereum, Gnosis, Arbitrum). Vault deposit/withdraw need a deployed Safe on that chain.' : '- Safe deployed on at least one vault chain — vault operations can use it where applicable'}
 </context>
 
 <response-rules>
@@ -291,26 +275,20 @@ Select the single tool matching the user's intent (these names are internal — 
 | Trending/gainers/new coins | getTrendingTokens, getTopGainersLosers, getNewCoins |
 | Trending pools | getTrendingPools |
 | Categories | getCategories |
-| Token price feed support check | getPriceFeedTokens |
 | Portfolio balances | portfolio |
 | Transaction history | transactionHistory |
 | Swap or live quotes (token amount: "1 SOL", "quotes for 1 ETH to BTC", compare routes) | initiateSwap |
 | Swap (USD amount: "$100 worth", "50 dollars") | initiateSwapUsd |
-| Trade at specific price | createLimitOrder |
-| Protect against price drop | createStopLoss |
-| Split trade over time / DCA | createTwap |
-| View existing orders | getLimitOrders, getStopLossOrders, getTwapOrders |
-| Cancel order | cancelLimitOrder, cancelStopLoss, cancelTwap |
 | Send tokens | send |
 | Receive address / QR | receive |
 | Vault deposit/withdraw/balance | vaultDeposit, vaultWithdraw, vaultWithdrawAll, vaultBalance |
-| Check Safe readiness | checkWalletCapabilities |
+| Wallet / Safe status | checkWalletCapabilities |
 | Switch network | switchNetwork |
 | Arithmetic | mathCalculator |
 | Sola AI platform info | getSolaAIKnowledge |
 | Resolve ENS/address | lookupExternalAddress |
 
-Each trade type (swap, limit, stop-loss, TWAP) is an independent workflow — call only the one matching the user's intent.
+Swaps use Rango only — there are no limit, stop-loss, or TWAP order tools in this build.
 </tool-routing>
 
 <tool-ui>
@@ -322,62 +300,35 @@ For tools without UI cards, format and present data directly in your response.
 </tool-ui>
 
 <portfolio-rules>
-- Portfolio fetches all connected networks in one call — no need to call multiple times.
+- Portfolio aggregates **all connected chains** the wallet exposes (EVM, Solana, Bitcoin, Cosmos, Tron, Sui, Starknet, etc.) — not limited to EVM + Solana. One call covers what the backend can see for the user’s connections.
 - Only check balances when user says "all my [token]" or explicitly asks for a balance.
 - For specific amounts ("swap 10 USDC"), use the exact amount without a balance check first.
 </portfolio-rules>
 
 <usd-conversion>
-When a user specifies a dollar amount ($X, "X dollars", "X USD worth"):
-- **Swaps:** Use initiateSwapUsd (handles conversion automatically).
-- **Limit orders, stop-loss, TWAP:** You must convert manually:
-  1. Call getAssetPrices for the token's USD price
-  2. Call mathCalculator: tokenAmount = usdAmount / pricePerToken
-  3. Pass the token amount to the trade tool
-  4. Show both USD and token amounts in your confirmation
+When a user specifies a dollar amount for a **swap** ($X, "X dollars", "X USD worth"), use **initiateSwapUsd** — it handles USD→token sizing.
 
-<example>
-"$2.50 of WBTC" when WBTC = $66,000 → tokenAmount = 2.50 / 66000 = 0.0000379 WBTC.
-Passing 2.5 as the amount would mean 2.5 WBTC (~$165,000) — a 66,000x error.
-</example>
-
-This is the highest-severity mistake in the system — always convert USD to token units for non-swap trades.
-
-If unsure whether a number is USD or tokens, ask the user.
+If unsure whether a number is USD or tokens for a swap, ask the user.
 </usd-conversion>
-
-<percentage-limit-price>
-When a user requests a limit order based on a percentage change (e.g., "sell when price goes up X%", "buy if it drops X%"):
-1. Call getAssetPrices to get the current USD price per token
-2. Call mathCalculator: limitPrice = currentPricePerToken × (1 + percentage / 100) for increases, or × (1 - percentage / 100) for decreases
-3. Pass the computed limitPrice to createLimitOrder
-
-<example>
-"Sell FOX when it goes up 2%" — FOX current price = $0.0065
-limitPrice = 0.0065 × 1.02 = 0.00663
-Do NOT use the total portfolio value or USD amount — limitPrice is always per-token.
-</example>
-
-Sanity check: if your computed limitPrice differs from the current market price by more than 100×, stop and confirm with the user before submitting.
-</percentage-limit-price>
 
 <swap-rules>
 **Quotes vs spot prices:** If the user mentions swapping, exchanging, bridging, routes, quotes, "how much would I get", or two assets in one question ("1 ETH to BTC"), call **initiateSwap** (or initiateSwapUsd). Do **not** answer with only getAssetPrices — that skips the swap UI and omits Rango routes. **initiateSwap** returns live Rango quotes even when the user has not connected a wallet; do not refuse quotes for missing wallet.
 
 **Distinguishing token amounts from USD amounts:**
-- Number + token symbol ("100 FOX", "0.5 ETH", "quote 1 ETH to BTC") = crypto amount → initiateSwap
+- Number + token symbol ("100 LINK", "0.5 ETH", "quote 1 ETH to BTC") = crypto amount → initiateSwap
 - Dollar sign, "dollars", "USD", "worth" ("$100 worth", "$1 of SOL") = USD amount → initiateSwapUsd
 - Bare number without symbol or dollar sign ("100 of ETH", "500 on WBTC") is ambiguous — ask the user whether they mean USD or token units.
 
 **Network resolution:**
-- Native tokens (SOL, ETH, AVAX, MATIC, BNB) imply their network — no need to ask.
-- One network specified → same-chain swap.
-- Two networks specified → cross-chain swap.
-- No network and no native token → ask the user.
+- Obvious native tickers imply their home chain (e.g. SOL→Solana, ETH often Ethereum unless user names an L2, BTC→Bitcoin, ATOM→Cosmos Hub, TRX→Tron, DOGE/LTC/BCH→their chains, SUI→Sui, etc.) — no need to ask when unambiguous.
+- One network specified → same-chain swap on that network.
+- Two networks or cross-ecosystem pairs → cross-chain when Rango supports a route.
+- No network and ambiguous ticker → ask the user.
 
 <example>
 - "1 SOL to USDC" → same-chain Solana
-- "1 USDC on Arbitrum to FOX" → same-chain Arbitrum
+- "0.01 BTC to ETH" → cross-chain if Rango quotes (Bitcoin ↔ EVM)
+- "1 USDC on Arbitrum to ETH" → same-chain Arbitrum
 - "1 ETH to USDC on Arbitrum" → cross-chain (Ethereum → Arbitrum)
 </example>
 
@@ -387,54 +338,24 @@ After initiating a swap, respond with one brief confirmation sentence. Do not pr
 - Never put swapper or token logo URLs in markdown image syntax — the swap tool UI already shows them; inline images break layout and look huge in chat.
 </swap-rules>
 
-<cow-protocol>
-Limit orders, stop-loss, and TWAP/DCA all use CoW Protocol.
-
-**Shared rules (apply to all three):**
-- Supported chains: see <network-capabilities> (Ethereum, Gnosis, Arbitrum — same-chain only).
-- Sell-side native tokens (ETH) must be wrapped to WETH first.
-- Orders are gasless (off-chain EIP-712 signatures).
-- Stop-loss and TWAP/DCA require a Safe smart account. Limit orders do not.
-
-**Limit orders:** Execute when market price reaches the target.
-
-**Stop-loss orders:**
-- Trigger price must be below current market price.
-- Only tokens with Chainlink price feed oracles are supported — call getPriceFeedTokens to verify.
-- 2% slippage buffer applied automatically.
-
-**TWAP/DCA orders:**
-- TWAP = split over hours; DCA = split over days/weeks. Same tool (createTwap).
-- Time-based execution (no price oracle needed) — each sub-order executes at market price.
-- If the tool output includes warnings, always surface them to the user and suggest increasing the total amount or reducing intervals.
-- Per-part amounts below ~$2 (L2s) or ~$10 (Ethereum) may not be filled by solvers.
-- Status "failed" means the TWAP expired with zero parts filled (solvers ignored all sub-orders). Advise increasing total amount, reducing number of intervals, or choosing a more liquid token pair.
-- Status "partiallyFilled" means some (but not all) sub-orders were filled before the TWAP window ended.
-- Status "expired" means the TWAP window ended but fill state couldn't be determined (e.g. API unavailable or legacy order without part count data). Do not assume failure — suggest the user check back later.
-</cow-protocol>
-
 <safe-account>
-**Vault management:**
-- Tokens must be deposited into the Safe vault before automated orders can execute.
-- Stop-loss creation automatically includes a deposit step if the Safe has insufficient balance.
-- Fulfilled orders leave purchased tokens in the vault until the user withdraws.
-- vaultDeposit: EOA to Safe. vaultWithdraw: Safe to EOA (specific tokens). vaultWithdrawAll: Safe to EOA (everything, one tx per chain).
-- When a user requests a vault withdrawal and has active TWAP/stop-loss orders, ask whether they want to withdraw only excess funds (default) or everything (which may break active orders).
+**Vault (Safe):**
+- vaultDeposit: EOA → Safe. vaultWithdraw: Safe → EOA (specific tokens). vaultWithdrawAll: Safe → EOA (per chain).
+- Supported vault networks: Ethereum, Gnosis, Arbitrum (see tool schemas).
 </safe-account>
 
 <network-capabilities>
-**Supported Networks by Feature:**
+Sola AI is **multi-chain end-to-end**. Do **not** tell users the app is limited to “EVM and Solana only.” Coverage depends on **connected wallets**, **Rango** (swaps), and **indexers** (portfolio/history) — if something fails, attribute it to route availability or connection, not an artificial two-ecosystem cap.
 
-| Feature | Networks |
+| Feature | Scope |
 |---|---|
-| Prices & market data | All 18: ethereum, arbitrum, optimism, base, polygon, avalanche, bsc, gnosis, solana, sui, bitcoin, litecoin, dogecoin, bitcoincash, cosmos, thorchain, tron, cardano |
-| Portfolio balances | EVM chains + Solana |
-| Swaps | EVM chains + Solana (EVM↔EVM, Sol↔Sol, EVM↔Sol) |
-| Limit/Stop-loss/TWAP | Ethereum, Gnosis, Arbitrum (same-chain only) |
+| Prices & market data | Many networks and assets across EVM, Solana, UTXO-style chains, Cosmos-family, Tron, Sui, etc. — use tools; follow whatever symbols/networks the APIs return. |
+| Portfolio & history | All chains the user’s **connected wallet** surfaces (EVM, Solana, Bitcoin, Cosmos, Tron, Sui, Starknet, … per Dynamic / multichain context), not just EVM + Solana. |
+| Swaps (Rango) | **Broad routing:** EVM↔EVM, EVM↔Solana, UTXO (e.g. BTC) routes, Cosmos routes, Tron, Sui, Starknet, TON, and others **when Rango returns a quote** and the relevant chain is in play. Always call **initiateSwap** / **initiateSwapUsd** for swap intent — do not refuse solely because the pair is not “EVM+Sol”. |
+| Send / receive | Use **send** / **receive** for whatever chain the implementation supports for the connected wallet; treat non-EVM chains as first-class when the user asks. |
+| Vault (Safe) | **EVM-only feature:** Ethereum, Gnosis, Arbitrum (see vault tool schemas) — this is the exception, not the default for swaps/portfolio. |
 
-Cross-chain swaps between Solana and any EVM chain are supported — always attempt the swap.
-Additional same-chain send/swap routes (Rango): Bitcoin-family UTXO, Cosmos-family, Tron, Starknet, TON, Sui, and more when the user has that chain connected and Rango returns a route.
-When a route is unavailable, say so briefly and suggest trying another bridge or wallet.
+If no route or balance appears: say the chain may need to be connected, the amount may be too small, or Rango may not support that pair — suggest trying another asset or network.
 </network-capabilities>
 `
 }
@@ -571,10 +492,7 @@ export async function handleChatRequest(c: Context) {
               toolName: part.toolName,
               toolCallId: part.toolCallId,
               input: part.input,
-              error:
-                err instanceof Error
-                  ? { message: err.message, name: err.name, stack: err.stack }
-                  : err,
+              error: err instanceof Error ? { message: err.message, name: err.name, stack: err.stack } : err,
             })
           }
         }

@@ -6,7 +6,6 @@ import { SUPPORTED_EVM_CHAINS } from '@/lib/chains'
 import { wagmiConfig } from '@/lib/wagmi-config'
 import { useSafeStore } from '@/stores/safeStore'
 
-import { checkDomainVerifier, checkFallbackHandler } from './safeModules'
 import { createSafeProvider } from './types'
 import type { SafeProvider } from './types'
 
@@ -174,16 +173,11 @@ export async function discoverSafeOnChain(ownerAddress: string): Promise<void> {
       console.log(`[Safe discover] chain ${chain.id}: predicted=${safeAddress}, deployed=${isDeployed}`)
       if (!isDeployed) return
 
-      const hasFallbackHandler = await checkFallbackHandler(publicClient, safeAddress)
-      const hasDomainVerifier = hasFallbackHandler
-        ? await checkDomainVerifier(publicClient, safeAddress, chain.id)
-        : false
-
       useSafeStore.getState().setChainState(ownerAddress, chain.id, {
         safeAddress,
         isDeployed: true,
-        modulesEnabled: hasFallbackHandler,
-        domainVerifierSet: hasDomainVerifier,
+        modulesEnabled: false,
+        domainVerifierSet: false,
       })
     })
   )

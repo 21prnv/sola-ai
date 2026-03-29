@@ -10,12 +10,7 @@ import {
   solanaChainId,
 } from '@sola-ai/caip'
 
-import type {
-  ActiveOrderSummary,
-  KnownTransaction,
-  SafeChainDeployment,
-  WalletContext,
-} from './walletContextSimple'
+import type { ActiveOrderSummary, KnownTransaction, SafeChainDeployment, WalletContext } from './walletContextSimple'
 
 export const allEvmChainIds = [
   ethChainId,

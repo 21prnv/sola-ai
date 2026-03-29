@@ -33,30 +33,6 @@ export interface SendMeta {
   networkName?: string
 }
 
-export interface LimitOrderMeta {
-  orderId?: string
-  txHash?: string
-  approvalTxHash?: string
-  networkName?: string
-}
-
-export interface ConditionalOrderMeta {
-  approvalTxHash?: string
-  depositTxHash?: string
-  txHash?: string
-  orderId?: string
-  networkName?: string
-}
-
-export interface CancelLimitOrderMeta {
-  orderId?: string
-  networkName?: string
-}
-
-export interface CancelConditionalOrderMeta {
-  txHash?: string
-}
-
 export interface VaultDepositMeta {
   txHash?: string
   networkName?: string
@@ -100,15 +76,6 @@ export type ToolMetaMap = {
   getTrendingTokensTool: Record<string, never>
   getTopGainersLosersTool: Record<string, never>
   getNewCoinsTool: Record<string, never>
-  createLimitOrderTool: LimitOrderMeta
-  getLimitOrdersTool: Record<string, never>
-  cancelLimitOrderTool: CancelLimitOrderMeta
-  createStopLossTool: ConditionalOrderMeta
-  getStopLossOrdersTool: Record<string, never>
-  cancelStopLossTool: CancelConditionalOrderMeta
-  createTwapTool: ConditionalOrderMeta
-  getTwapOrdersTool: Record<string, never>
-  cancelTwapTool: CancelConditionalOrderMeta
   checkWalletCapabilitiesTool: Record<string, never>
   vaultDepositTool: VaultDepositMeta
   vaultWithdrawTool: VaultWithdrawMeta

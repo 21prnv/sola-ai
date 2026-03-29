@@ -45,58 +45,6 @@ export const analytics = {
     mixpanel.track('Send', props)
   },
 
-  // Track limit order creation
-  trackLimitOrder: (props: {
-    sellAsset: string
-    buyAsset: string
-    sellAmount: string
-    buyAmount: string
-    network: string
-    limitPrice: string
-  }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('Limit Order', props)
-  },
-
-  // Track limit order cancellation
-  trackCancelLimitOrder: (props: { orderId: string; network: string }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('Cancel Limit Order', props)
-  },
-
-  trackStopLoss: (props: {
-    sellAsset: string
-    buyAsset: string
-    sellAmount: string
-    triggerPrice: string
-    network: string
-  }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('Stop Loss', props)
-  },
-
-  trackCancelStopLoss: (props: { orderId: string; network: string }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('Cancel Stop Loss', props)
-  },
-
-  trackTwap: (props: {
-    sellAsset: string
-    buyAsset: string
-    sellAmount: string
-    network: string
-    intervals: number
-    frequency: string
-  }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('TWAP', props)
-  },
-
-  trackCancelTwap: (props: { orderId: string; network: string }) => {
-    if (!analyticsEnabled) return
-    mixpanel.track('Cancel TWAP', props)
-  },
-
   // Track chat message sent
   trackChatMessage: () => {
     if (!analyticsEnabled) return

@@ -20,22 +20,24 @@ export function executeCheckWalletCapabilities(
 ): CheckWalletCapabilitiesOutput {
   const hasWallet = !!walletContext?.connectedWallets && Object.keys(walletContext.connectedWallets).length > 0
   const isSafeReady = walletContext?.safeDeploymentState
-    ? Object.values(walletContext.safeDeploymentState).some(
-        s => s.isDeployed && s.modulesEnabled && s.domainVerifierSet
-      )
+    ? Object.values(walletContext.safeDeploymentState).some(s => s.isDeployed && !!s.safeAddress)
     : false
 
-  const baseCapabilities = ['Swap tokens', 'Send & receive', 'View portfolio', 'Limit orders']
-  const automationCapabilities = ['Stop-loss orders (via Safe)', 'TWAP orders', 'DCA (dollar-cost averaging)']
+  const baseCapabilities = [
+    'Swap tokens (Rango)',
+    'Send & receive',
+    'View portfolio',
+    'Safe vault (deposit / withdraw)',
+  ]
 
   return {
     walletType: hasWallet ? 'connected' : 'none',
     safeAddress: walletContext?.safeAddress,
     isSafeReady,
     capabilities: isSafeReady
-      ? [...baseCapabilities, ...automationCapabilities]
+      ? baseCapabilities
       : hasWallet
-        ? [...baseCapabilities, 'Safe smart account setup needed for automation']
+        ? [...baseCapabilities, 'Deploy Safe on-chain to use vault on a network']
         : baseCapabilities,
     automationReady: isSafeReady,
   }
@@ -44,11 +46,11 @@ export function executeCheckWalletCapabilities(
 export const checkWalletCapabilitiesTool = {
   description: `Check the connected wallet's capabilities.
 
-Call this tool when the user asks about automated trading features (TWAP, DCA, stop-loss, scheduled trades), or asks what their wallet can do.
+Call when the user asks what they can do in Sola AI, or about Safe / vault support.
 
-UI CARD DISPLAYS: wallet status, Safe smart account status, capability checklist, and setup prompts if automation features require a Safe smart account.
+UI CARD DISPLAYS: wallet status, Safe deployment status on vault chains, and a short capability list.
 
-If the user wants automation and doesn't have a Safe yet, explain that a Safe smart account needs to be deployed first (happens automatically on first stop-loss order). Any connected wallet (MetaMask, Rabby, etc.) can own a Safe.`,
+There are no limit, stop-loss, or TWAP tools — swaps use Rango only.`,
   inputSchema: checkWalletCapabilitiesSchema,
   execute: executeCheckWalletCapabilities,
 }

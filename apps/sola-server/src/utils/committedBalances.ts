@@ -1,7 +1,5 @@
 import { toBigInt } from '@sola-ai/utils'
 
-import { isConditionalOrderActive } from '../lib/composableCow/queries'
-
 import type { ActiveOrderSummary, WalletContext } from './walletContextSimple'
 
 function filterEligibleOrders(orders: ActiveOrderSummary[]): ActiveOrderSummary[] {
@@ -9,38 +7,26 @@ function filterEligibleOrders(orders: ActiveOrderSummary[]): ActiveOrderSummary[
   return orders.filter(o => o.status === 'open' && !(o.validTo > 0 && o.validTo < nowSeconds))
 }
 
-async function filterOnChainActive(
-  orders: ActiveOrderSummary[],
-  safeAddress: string,
-  evmChainId: number
-): Promise<ActiveOrderSummary[]> {
-  if (orders.length === 0) return []
-  const activeResults = await Promise.all(
-    orders.map(o => isConditionalOrderActive(safeAddress, o.orderHash as `0x${string}`, evmChainId))
-  )
-  return orders.filter((_, i) => activeResults[i])
-}
-
-export async function getCommittedAmountForToken(
+export function getCommittedAmountForToken(
   walletContext: WalletContext | undefined,
-  safeAddress: string,
+  _safeAddress: string,
   evmChainId: number,
   tokenAddress: string
-): Promise<bigint> {
+): bigint {
   const chainOrders = (walletContext?.registryOrders ?? []).filter(
     o => o.chainId === evmChainId && o.sellTokenAddress.toLowerCase() === tokenAddress.toLowerCase()
   )
-  const active = await filterOnChainActive(filterEligibleOrders(chainOrders), safeAddress, evmChainId)
+  const active = filterEligibleOrders(chainOrders)
   return active.reduce((sum, o) => sum + toBigInt(o.sellAmountBaseUnit), 0n)
 }
 
-export async function getAllCommittedAmounts(
+export function getAllCommittedAmounts(
   walletContext: WalletContext | undefined,
-  safeAddress: string,
+  _safeAddress: string,
   evmChainId: number
-): Promise<Map<string, bigint>> {
+): Map<string, bigint> {
   const chainOrders = (walletContext?.registryOrders ?? []).filter(o => o.chainId === evmChainId)
-  const active = await filterOnChainActive(filterEligibleOrders(chainOrders), safeAddress, evmChainId)
+  const active = filterEligibleOrders(chainOrders)
 
   const committed = new Map<string, bigint>()
   for (const o of active) {

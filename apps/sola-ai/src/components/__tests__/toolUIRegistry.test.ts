@@ -8,7 +8,7 @@ describe('getToolDisplayName', () => {
   })
 
   it('returns display name for another known tool', () => {
-    expect(getToolDisplayName('createLimitOrderTool')).toBe('Limit Order')
+    expect(getToolDisplayName('portfolioTool')).toBe('Portfolio')
   })
 
   it('returns the raw tool name for an unknown tool', () => {

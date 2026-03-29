@@ -24,11 +24,7 @@ export function ActivityList() {
   const activities = useMemo(() => {
     return transactions
       .filter(
-        tx =>
-          tx.toolName === 'initiateSwapTool' ||
-          tx.toolName === 'initiateSwapUsdTool' ||
-          tx.toolName === 'sendTool' ||
-          tx.toolName === 'createLimitOrderTool'
+        tx => tx.toolName === 'initiateSwapTool' || tx.toolName === 'initiateSwapUsdTool' || tx.toolName === 'sendTool'
       )
       .filter(tx => !tx.error)
       .filter(tx => tx.walletAddress && connectedAddresses.has(tx.walletAddress.toLowerCase()))
@@ -41,7 +37,7 @@ export function ActivityList() {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="text-muted-foreground">No activity yet</div>
-        <div className="text-sm text-muted-foreground mt-1">Your swaps, sends, and limit orders will appear here</div>
+        <div className="text-sm text-muted-foreground mt-1">Your swaps and sends will appear here</div>
       </div>
     )
   }
