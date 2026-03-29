@@ -1,0 +1,25 @@
+{
+  "name": "sola-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"bun run --filter @sola-ai/frontend dev\" \"bun run --filter @sola-ai/server dev\"",
+    "dev:frontend": "bun run --filter @sola-ai/frontend dev",
+    "dev:backend": "bun run --filter @sola-ai/server dev",
+    "build": "bun run --filter @sola-ai/frontend build && bun run --filter @sola-ai/server build",
+    "type-check": "bun run --filter '*' type-check"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "@solana/web3.js": "1.98.4"
+  }
+}

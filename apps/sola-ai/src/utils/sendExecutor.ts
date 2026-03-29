@@ -1,0 +1,40 @@
+import type { SendOutput } from '@sola-ai/server'
+import { hexToBigInt } from 'viem'
+
+import type { SolanaWalletSigner } from '@/utils/chains/types'
+import { sendTransaction } from '@/utils/sendTransaction'
+import { getUserFriendlyErrorMessage } from '@/utils/walletErrors'
+
+type TransactionData = SendOutput['tx']
+
+interface ExecuteTransactionOptions {
+  solanaSigner?: SolanaWalletSigner
+}
+
+async function executeTransaction(tx: TransactionData, options?: ExecuteTransactionOptions) {
+  const gasLimit = tx.gasLimit
+    ? typeof tx.gasLimit === 'string' && tx.gasLimit.startsWith('0x')
+      ? Number(hexToBigInt(tx.gasLimit as `0x${string}`))
+      : Number(tx.gasLimit)
+    : undefined
+
+  const finalTx = {
+    chainId: tx.chainId,
+    data: tx.data,
+    from: tx.from,
+    to: tx.to,
+    value: tx.value,
+    ...(gasLimit !== undefined && { gasLimit }),
+    ...(options?.solanaSigner && { solanaSigner: options.solanaSigner }),
+  }
+
+  return sendTransaction(finalTx)
+}
+
+export async function executeSend(sendTx: TransactionData, options?: ExecuteTransactionOptions): Promise<string> {
+  try {
+    return await executeTransaction(sendTx, options)
+  } catch (error) {
+    throw new Error(getUserFriendlyErrorMessage(error, 'Send'))
+  }
+}
