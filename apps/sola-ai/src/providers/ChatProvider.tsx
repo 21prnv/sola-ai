@@ -5,6 +5,7 @@ import { createContext, useContext, useCallback, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
+import { getActiveStream, markStreamingActive, markStreamingDone } from '@/hooks/useAutoResume'
 import { useWalletConnection } from '@/hooks/useWalletConnection'
 import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallets'
 import { analytics } from '@/lib/mixpanel'
@@ -83,13 +84,22 @@ export function ChatProvider({ children }: ChatProviderProps) {
             }),
           }
         },
+        prepareReconnectToStreamRequest: ({ id }) => ({
+          api: `${getSolaServerBaseUrl()}/api/chat/resume/${id}`,
+        }),
       }),
     []
+  )
+
+  const initialMessages = useMemo(
+    () => (urlConversationId ? useChatStore.getState().getMessages(urlConversationId) : []),
+    [urlConversationId]
   )
 
   const chat = useChat({
     id: urlConversationId,
     transport,
+    messages: initialMessages,
     experimental_throttle: 50,
     onError: error => {
       console.error('[Chat Error]', {
@@ -108,8 +118,29 @@ export function ChatProvider({ children }: ChatProviderProps) {
     },
   })
 
-  const { setMessages } = chat
+  const { setMessages, resumeStream } = chat
   const lastLoadedIdRef = useRef<string | undefined>(undefined)
+  const resumeAttemptedRef = useRef(false)
+
+  useEffect(() => {
+    const isStreaming = chat.status === 'submitted' || chat.status === 'streaming'
+    if (isStreaming && urlConversationId) {
+      markStreamingActive(urlConversationId)
+    } else if (chat.status === 'ready') {
+      markStreamingDone()
+    }
+  }, [chat.status, urlConversationId])
+
+  useEffect(() => {
+    if (resumeAttemptedRef.current) return
+    if (!urlConversationId || chat.status !== 'ready') return
+
+    const activeStream = getActiveStream()
+    if (!activeStream || activeStream.conversationId !== urlConversationId) return
+
+    resumeAttemptedRef.current = true
+    void resumeStream()
+  }, [urlConversationId, chat.status, resumeStream])
 
   useEffect(() => {
     if (!urlConversationId) {

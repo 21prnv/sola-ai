@@ -15,6 +15,7 @@ import { WagmiProvider } from 'wagmi'
 
 import { useWalletAnalytics } from '@/hooks/useWalletAnalytics'
 import { DYNAMIC_EVM_NETWORKS } from '@/lib/chains'
+import { useThemeStore } from '@/stores/themeStore'
 import { wagmiConfig } from '@/lib/wagmi-config'
 
 import { Dashboard } from './dashboard/page'
@@ -32,6 +33,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   useWalletAnalytics()
+  const { mode, theme } = useThemeStore()
 
   useEffect(() => {
     if (!import.meta.env.VITE_DYNAMIC_ENVIRONMENT_ID?.trim()) {
@@ -40,6 +42,11 @@ function AppContent() {
       )
     }
   }, [])
+
+  useEffect(() => {
+    const html = document.documentElement
+    html.className = `${mode}${theme !== 'default' ? ` ${theme}` : ''}`
+  }, [mode, theme])
 
   return (
     <Routes>
@@ -51,9 +58,11 @@ function AppContent() {
 }
 
 function App() {
+  const dynamicTheme = useThemeStore(s => s.mode)
+
   return (
     <DynamicContextProvider
-      theme="dark"
+      theme={dynamicTheme}
       settings={{
         environmentId: import.meta.env.VITE_DYNAMIC_ENVIRONMENT_ID,
         walletConnectors: [
@@ -78,7 +87,7 @@ function App() {
           <DynamicWagmiConnector>
             <AppContent />
             <Toaster
-              theme="dark"
+              theme={dynamicTheme}
               closeButton
               toastOptions={{
                 classNames: {

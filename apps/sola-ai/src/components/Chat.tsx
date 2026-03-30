@@ -34,6 +34,13 @@ export function Chat() {
   const isStreaming = status === 'submitted' || status === 'streaming'
   const isPaused = useStreamPauseDetector(isStreaming, lastMessageContent)
 
+  const lastAssistantIndex = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role === 'assistant') return i
+    }
+    return -1
+  }, [messages])
+
   const handleSuggestionClick = (suggestion: string) => {
     void sendMessage({ text: suggestion })
   }
@@ -81,11 +88,13 @@ export function Chat() {
       return (
         <div className="mx-auto max-w-2xl px-4 py-2">
           {message.role === 'user' && <UserMessage message={message} />}
-          {message.role === 'assistant' && <AssistantMessage message={message} />}
+          {message.role === 'assistant' && (
+            <AssistantMessage message={message} animated={isStreaming && item.index === lastAssistantIndex} />
+          )}
         </div>
       )
     },
-    [messages]
+    [messages, isStreaming, lastAssistantIndex]
   )
 
   return (
@@ -103,7 +112,7 @@ export function Chat() {
             initialTopMostItemIndex={items.length - 1}
             followOutput={isActive => {
               if (!shouldAutoScrollRef.current) return false
-              return isActive ? 'auto' : false
+              return isActive ? (isStreaming ? 'smooth' : 'auto') : false
             }}
             atBottomStateChange={atBottom => {
               shouldAutoScrollRef.current = atBottom
