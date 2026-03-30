@@ -6,6 +6,7 @@ import { cors } from 'hono/cors'
 
 import { initializeAllAssetData, refreshAllAssetData } from './lib/assetInit'
 import { handleChatRequest } from './routes/chat'
+import { handleChatResumeRequest } from './routes/chatResume'
 import { handlePortfolioRequest } from './routes/portfolio'
 import { handleSwapBuildRequest } from './routes/swapBuild'
 
@@ -43,6 +44,9 @@ app.get('/health', c => {
 // Chat endpoint
 app.post('/api/chat', handleChatRequest)
 
+// Chat stream resume endpoint
+app.get('/api/chat/resume/:conversationId', handleChatResumeRequest)
+
 // Portfolio endpoint
 app.post('/api/portfolio', handlePortfolioRequest)
 
@@ -64,6 +68,7 @@ const port = Number(process.env.PORT) || 8787
 
 console.log(`Server starting on port ${port}`)
 console.log(`   API: /api/chat`)
+console.log(`   API: /api/chat/resume/:conversationId`)
 console.log(`   API: /api/portfolio`)
 console.log(`   API: /api/swap/build`)
 console.log(`   Health: /health`)

@@ -13,11 +13,12 @@ import {
   suiChainId,
   tronChainId,
 } from '@sola-ai/caip'
-import { convertToModelMessages, stepCountIs, streamText } from 'ai'
+import { convertToModelMessages, smoothStream, stepCountIs, streamText } from 'ai'
 import { format, getUnixTime } from 'date-fns'
 import type { Context } from 'hono'
 import { z } from 'zod'
 
+import { createResumableStream, registerStream, clearStream } from '../lib/streamRegistry'
 import { CHAIN_ID_TO_NETWORK, VAULT_EVM_CHAIN_IDS } from '../lib/vaultNetworks'
 import { getModel, getProviderName } from '../models'
 import { checkWalletCapabilitiesTool } from '../tools/checkWalletCapabilities'
@@ -269,23 +270,23 @@ Select the single tool matching the user's intent (these names are internal — 
 
 | Intent | Tool |
 |---|---|
-| Spot price only — "what is ETH worth" (no swap, no UI card) | getAssetPrices |
-| Historical prices / price at past date / price growth over time | getHistoricalPrices |
-| Detailed market data (UI card) | getAssets |
-| Trending/gainers/new coins | getTrendingTokens, getTopGainersLosers, getNewCoins |
-| Trending pools | getTrendingPools |
-| Categories | getCategories |
-| Portfolio balances | portfolio |
-| Transaction history | transactionHistory |
-| Swap or live quotes (token amount: "1 SOL", "quotes for 1 ETH to BTC", compare routes) | initiateSwap |
-| Swap (USD amount: "$100 worth", "50 dollars") | initiateSwapUsd |
-| Send tokens | send |
-| Receive address / QR | receive |
-| Vault deposit/withdraw/balance | vaultDeposit, vaultWithdraw, vaultWithdrawAll, vaultBalance |
-| Wallet / Safe status | checkWalletCapabilities |
-| Switch network | switchNetwork |
-| Arithmetic | mathCalculator |
-| Sola AI platform info | getSolaAIKnowledge |
+| Spot price only — "what is ETH worth" (no swap, no UI card) | getAssetPricesTool |
+| Historical prices / price at past date / price growth over time | getHistoricalPricesTool |
+| Detailed market data (UI card) | getAssetsTool |
+| Trending/gainers/new coins | getTrendingTokensTool, getTopGainersLosersTool, getNewCoinsTool |
+| Trending pools | getTrendingPoolsTool |
+| Categories | getCategoriesTool |
+| Portfolio balances | portfolioTool |
+| Transaction history | transactionHistoryTool |
+| Swap or live quotes (token amount: "1 SOL", "quotes for 1 ETH to BTC", compare routes) | initiateSwapTool |
+| Swap (USD amount: "$100 worth", "50 dollars") | initiateSwapUsdTool |
+| Send tokens | sendTool |
+| Receive address / QR | receiveTool |
+| Vault deposit/withdraw/balance | vaultDepositTool, vaultWithdrawTool, vaultWithdrawAllTool, vaultBalanceTool |
+| Wallet / Safe status | checkWalletCapabilitiesTool |
+| Switch network | switchNetworkTool |
+| Arithmetic | mathCalculatorTool |
+| Sola AI platform info | getSolaAIKnowledgeTool |
 | Resolve ENS/address | lookupExternalAddress |
 
 Swaps use Rango only — there are no limit, stop-loss, or TWAP order tools in this build.
@@ -306,17 +307,17 @@ For tools without UI cards, format and present data directly in your response.
 </portfolio-rules>
 
 <usd-conversion>
-When a user specifies a dollar amount for a **swap** ($X, "X dollars", "X USD worth"), use **initiateSwapUsd** — it handles USD→token sizing.
+When a user specifies a dollar amount for a **swap** ($X, "X dollars", "X USD worth"), use **initiateSwapUsdTool** — it handles USD→token sizing.
 
 If unsure whether a number is USD or tokens for a swap, ask the user.
 </usd-conversion>
 
 <swap-rules>
-**Quotes vs spot prices:** If the user mentions swapping, exchanging, bridging, routes, quotes, "how much would I get", or two assets in one question ("1 ETH to BTC"), call **initiateSwap** (or initiateSwapUsd). Do **not** answer with only getAssetPrices — that skips the swap UI and omits Rango routes. **initiateSwap** returns live Rango quotes even when the user has not connected a wallet; do not refuse quotes for missing wallet.
+**Quotes vs spot prices:** If the user mentions swapping, exchanging, bridging, routes, quotes, "how much would I get", or two assets in one question ("1 ETH to BTC"), call **initiateSwapTool** (or initiateSwapUsdTool). Do **not** answer with only getAssetPricesTool — that skips the swap UI and omits Rango routes. **initiateSwapTool** returns live Rango quotes even when the user has not connected a wallet; do not refuse quotes for missing wallet.
 
 **Distinguishing token amounts from USD amounts:**
-- Number + token symbol ("100 LINK", "0.5 ETH", "quote 1 ETH to BTC") = crypto amount → initiateSwap
-- Dollar sign, "dollars", "USD", "worth" ("$100 worth", "$1 of SOL") = USD amount → initiateSwapUsd
+- Number + token symbol ("100 LINK", "0.5 ETH", "quote 1 ETH to BTC") = crypto amount → initiateSwapTool
+- Dollar sign, "dollars", "USD", "worth" ("$100 worth", "$1 of SOL") = USD amount → initiateSwapUsdTool
 - Bare number without symbol or dollar sign ("100 of ETH", "500 on WBTC") is ambiguous — ask the user whether they mean USD or token units.
 
 **Network resolution:**
@@ -351,8 +352,8 @@ Sola AI is **multi-chain end-to-end**. Do **not** tell users the app is limited 
 |---|---|
 | Prices & market data | Many networks and assets across EVM, Solana, UTXO-style chains, Cosmos-family, Tron, Sui, etc. — use tools; follow whatever symbols/networks the APIs return. |
 | Portfolio & history | All chains the user’s **connected wallet** surfaces (EVM, Solana, Bitcoin, Cosmos, Tron, Sui, Starknet, … per Dynamic / multichain context), not just EVM + Solana. |
-| Swaps (Rango) | **Broad routing:** EVM↔EVM, EVM↔Solana, UTXO (e.g. BTC) routes, Cosmos routes, Tron, Sui, Starknet, TON, and others **when Rango returns a quote** and the relevant chain is in play. Always call **initiateSwap** / **initiateSwapUsd** for swap intent — do not refuse solely because the pair is not “EVM+Sol”. |
-| Send / receive | Use **send** / **receive** for whatever chain the implementation supports for the connected wallet; treat non-EVM chains as first-class when the user asks. |
+| Swaps (Rango) | **Broad routing:** EVM↔EVM, EVM↔Solana, UTXO (e.g. BTC) routes, Cosmos routes, Tron, Sui, Starknet, TON, and others **when Rango returns a quote** and the relevant chain is in play. Always call **initiateSwapTool** / **initiateSwapUsdTool** for swap intent — do not refuse solely because the pair is not “EVM+Sol”. |
+| Send / receive | Use **sendTool** / **receiveTool** for whatever chain the implementation supports for the connected wallet; treat non-EVM chains as first-class when the user asks. |
 | Vault (Safe) | **EVM-only feature:** Ethereum, Gnosis, Arbitrum (see vault tool schemas) — this is the exception, not the default for swaps/portfolio. |
 
 If no route or balance appears: say the chain may need to be connected, the amount may be too small, or Rango may not support that pair — suggest trying another asset or network.
@@ -361,6 +362,7 @@ If no route or balance appears: say the chain may need to be connected, the amou
 }
 
 const chatRequestSchema = z.object({
+  id: z.string().optional(),
   messages: z.array(z.record(z.string(), z.unknown())),
   evmAddress: z.string().optional(),
   solanaAddress: z.string().optional(),
@@ -426,6 +428,7 @@ export async function handleChatRequest(c: Context) {
     }
 
     const {
+      id: conversationId,
       messages,
       evmAddress,
       solanaAddress,
@@ -465,6 +468,7 @@ export async function handleChatRequest(c: Context) {
       temperature: 0.3,
       stopWhen: stepCountIs(5),
       tools: buildTools(walletContext),
+      experimental_transform: smoothStream({ chunking: 'word', delayInMs: 3 }),
       // Venice-specific parameters to disable reasoning for faster responses
       ...(getProviderName() === 'venice' && {
         providerOptions: {
@@ -502,7 +506,30 @@ export async function handleChatRequest(c: Context) {
       },
     })
 
-    return result.toUIMessageStreamResponse()
+    const streamId = crypto.randomUUID()
+    const response = result.toUIMessageStreamResponse()
+    const originalStream = response.body
+
+    if (!originalStream || !conversationId) {
+      return response
+    }
+
+    registerStream(conversationId, streamId)
+    const resumable = await createResumableStream(streamId, originalStream)
+
+    const cleanupStream = new TransformStream({
+      flush() {
+        if (conversationId) clearStream(conversationId)
+      },
+    })
+
+    return new Response(resumable.pipeThrough(cleanupStream), {
+      headers: {
+        ...Object.fromEntries(response.headers.entries()),
+        'x-stream-id': streamId,
+        'x-conversation-id': conversationId,
+      },
+    })
   } catch (error) {
     const errorDetails = {
       message: error instanceof Error ? error.message : String(error),

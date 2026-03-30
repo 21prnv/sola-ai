@@ -8,6 +8,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="/favicon.svg" />
     <link rel="stylesheet" href="/src/styles.css" />
+    <script>
+      try {
+        var t = JSON.parse(localStorage.getItem('sola-ai-theme') || '{}');
+        var m = (t.state && t.state.mode) || 'dark';
+        var th = (t.state && t.state.theme) || 'default';
+        document.documentElement.className = m + (th !== 'default' ? ' ' + th : '');
+      } catch(e) { document.documentElement.className = 'dark'; }
+    </script>
   </head>
   <body>
     <div id="root"></div>

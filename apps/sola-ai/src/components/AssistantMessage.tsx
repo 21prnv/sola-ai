@@ -8,9 +8,10 @@ import { CopyButton } from './ui/CopyButton'
 
 interface AssistantMessageProps {
   message: UIMessage
+  animated?: boolean
 }
 
-export const AssistantMessage = memo(function AssistantMessage({ message }: AssistantMessageProps) {
+export const AssistantMessage = memo(function AssistantMessage({ message, animated = false }: AssistantMessageProps) {
   const textContent = useMemo(
     () =>
       message.parts
@@ -34,7 +35,7 @@ export const AssistantMessage = memo(function AssistantMessage({ message }: Assi
           if (index === lastTextIndex && textContent) {
             return (
               <div key={`text-${index}`} className="[&>div]:contents [&>div>*:last-child]:inline">
-                <Markdown>{part.text}</Markdown>
+                <Markdown animated={animated}>{part.text}</Markdown>
                 <CopyButton
                   value={textContent}
                   className="inline-flex align-middle ml-1 opacity-0 transition-opacity group-hover/msg:opacity-100"
@@ -42,7 +43,11 @@ export const AssistantMessage = memo(function AssistantMessage({ message }: Assi
               </div>
             )
           }
-          return <Markdown key={`text-${index}`}>{part.text}</Markdown>
+          return (
+            <Markdown key={`text-${index}`} animated={animated}>
+              {part.text}
+            </Markdown>
+          )
         }
 
         if (isToolOrDynamicToolUIPart(part)) {
@@ -59,7 +64,7 @@ export const AssistantMessage = memo(function AssistantMessage({ message }: Assi
 
         return null
       }),
-    [message.parts, lastTextIndex, textContent]
+    [message.parts, lastTextIndex, textContent, animated]
   )
 
   return (
