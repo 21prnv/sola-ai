@@ -69,6 +69,7 @@ export type ToolMetaMap = {
   switchNetworkTool: NetworkSwitchMeta
   portfolioTool: Record<string, never>
   getAssetsTool: Record<string, never>
+  getAssetPricesTool: Record<string, never>
   lookupExternalAddress: Record<string, never>
   transactionHistoryTool: Record<string, never>
   getAllowanceTool: Record<string, never>
@@ -76,6 +77,7 @@ export type ToolMetaMap = {
   getTrendingTokensTool: Record<string, never>
   getTopGainersLosersTool: Record<string, never>
   getNewCoinsTool: Record<string, never>
+  getHistoricalPricesTool: Record<string, never>
   checkWalletCapabilitiesTool: Record<string, never>
   vaultDepositTool: VaultDepositMeta
   vaultWithdrawTool: VaultWithdrawMeta

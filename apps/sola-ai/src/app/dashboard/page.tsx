@@ -12,7 +12,7 @@ export const Dashboard = () => {
       <SidebarProvider>
         <SidebarLeft />
         <SidebarInset className="h-dvh flex flex-col">
-          <header className="sticky top-0 h-12 flex-shrink-0 flex gap-2 bg-background z-10 px-2 items-center">
+          <header className="sticky top-0 h-12 shrink-0 flex gap-2 bg-background z-10 px-2 items-center">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
             </div>
@@ -22,7 +22,7 @@ export const Dashboard = () => {
               <ConnectWallet />
             </div>
           </header>
-          <div className="overflow-hidden flex-1">
+          <div className="relative min-h-0 flex-1 overflow-hidden">
             <Chat />
           </div>
         </SidebarInset>

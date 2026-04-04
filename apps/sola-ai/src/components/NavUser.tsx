@@ -1,4 +1,4 @@
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from './ui/Avatar'
 import {
@@ -65,9 +65,17 @@ export const NavUser: React.FC<NavUserProps> = ({ user }) => {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
+              <DropdownMenuItem className="group relative overflow-hidden rounded-md border border-primary/20 bg-primary/5 p-0 focus:bg-primary/5">
+                <div className="pro-card-glow w-full rounded-md px-3 py-2.5 transition-all duration-300 group-hover:-translate-y-px group-hover:shadow-sm group-hover:shadow-primary/25">
+                  <div className="mb-0.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-medium text-foreground">
+                      <Sparkles className="size-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                      Upgrade to Pro
+                    </div>
+                    <ArrowRight className="size-3.5 text-primary/70 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Higher limits, faster tool actions, premium support.</p>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

@@ -1,15 +1,19 @@
 import { AlertTriangle } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 import { Virtuoso } from 'react-virtuoso'
 
 import { useStreamPauseDetector } from '../hooks/useStreamPauseDetector'
 import { useChatContext } from '../providers/ChatProvider'
+import type { WatchlistToken } from '../stores/watchlistStore'
 
 import { AssistantMessage } from './AssistantMessage'
 import { Composer } from './Composer'
 import { LoadingIndicator } from './LoadingIndicator'
+import { WatchlistStrip } from './WatchlistStrip'
 import { Button } from './ui/Button'
 import { UserMessage } from './UserMessage'
+import { cn } from '@/lib/utils'
 
 const WELCOME_SUGGESTIONS = [
   'What is my USDC balance on Arbitrum?',
@@ -45,6 +49,12 @@ export function Chat() {
     void sendMessage({ text: suggestion })
   }
 
+  const handleWatchlistClick = (token: WatchlistToken) => {
+    void sendMessage({
+      text: `Show me ${token.symbol} market details and the latest spot price.`,
+    })
+  }
+
   const isEmpty = messages.length === 0
 
   const items = useMemo(() => {
@@ -70,7 +80,7 @@ export function Chat() {
         return (
           <div className="mx-auto max-w-2xl px-4 py-2">
             <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-              <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+              <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
               <div className="flex flex-col gap-1">
                 <div className="font-medium text-red-800 dark:text-red-200">Something went wrong</div>
                 <div className="text-sm text-red-600 dark:text-red-400">
@@ -98,13 +108,11 @@ export function Chat() {
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       {/* Messages viewport */}
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         {isEmpty ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-lg text-foreground">How can I help you today?</div>
-          </div>
+          <div className="h-full" aria-hidden />
         ) : (
           <Virtuoso
             data={items}
@@ -119,35 +127,52 @@ export function Chat() {
             }}
             atBottomThreshold={100}
             style={{ height: '100%' }}
+            components={{
+              Footer: () => <div className="h-40 shrink-0" aria-hidden />,
+            }}
           />
         )}
       </div>
 
-      {/* Suggestions above composer - only shown when empty */}
-      {isEmpty && (
-        <div className="bg-background">
-          <div className="mx-auto flex max-w-2xl gap-2 px-4 py-3">
+      {/* Composer dock: matches chat multi-modal-input — floats from ~25vh to bottom after first message */}
+      <motion.div
+        layoutId="sola-multi-modal-input"
+        transition={{ type: 'spring', stiffness: 1000, damping: 40 }}
+        className={cn(
+          'absolute right-0 left-0 z-10 flex flex-col gap-4 px-4 pt-4',
+          isEmpty ? 'top-[25vh] bottom-0' : 'bottom-0'
+        )}
+      >
+        {isEmpty && (
+          <motion.div
+            className="mx-auto w-full max-w-3xl font-serif"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-2xl text-foreground">How can I help you today?</h2>
+          </motion.div>
+        )}
+        {isEmpty && (
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3">
             {WELCOME_SUGGESTIONS.map((suggestion, index) => (
               <Button
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion)}
                 title={suggestion}
                 variant="outline"
-                className="flex-1 min-w-0 h-[52px] line-clamp-2 whitespace-normal"
+                className="h-auto min-h-[52px] min-w-0 whitespace-normal px-3 py-2 text-left leading-snug line-clamp-2"
               >
                 {suggestion}
               </Button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Composer */}
-      <div className="bg-background">
-        <div className="mx-auto max-w-2xl p-4">
+        )}
+        <WatchlistStrip onTokenClick={handleWatchlistClick} />
+        <div className="mx-auto w-full max-w-3xl pb-4">
           <Composer />
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

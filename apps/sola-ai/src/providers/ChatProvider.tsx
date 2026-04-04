@@ -1,6 +1,6 @@
 import { useChat } from '@ai-sdk/react'
 import { useUserWallets } from '@dynamic-labs/sdk-react-core'
-import { DefaultChatTransport, isToolOrDynamicToolUIPart } from 'ai'
+import { DefaultChatTransport, isToolOrDynamicToolUIPart, type UIMessage } from 'ai'
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { analytics } from '@/lib/mixpanel'
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 import { useChatStore, MAX_MESSAGES_PER_CONVERSATION } from '@/stores/chatStore'
 import { useOrderStore } from '@/stores/orderStore'
+import { useWatchlistStore } from '@/stores/watchlistStore'
 import { generateConversationId, extractTitleFromMessages } from '@/utils/conversationStorage'
 
 interface ChatContextValue {
@@ -40,6 +41,20 @@ export function useChatContext() {
 
 interface ChatProviderProps {
   children: ReactNode
+}
+
+type WatchlistCommand = { action: 'add' | 'remove'; symbol: string }
+
+function parseWatchlistCommand(text: string): WatchlistCommand | null {
+  const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ')
+
+  const add = normalized.match(/^(?:add|pin)\s+([a-z0-9.-]{2,15})\s+(?:to\s+)?(?:my\s+)?watchlist$/i)
+  if (add?.[1]) return { action: 'add', symbol: add[1] }
+
+  const remove = normalized.match(/^(?:remove|unpin)\s+([a-z0-9.-]{2,15})\s+(?:from\s+)?(?:my\s+)?watchlist$/i)
+  if (remove?.[1]) return { action: 'remove', symbol: remove[1] }
+
+  return null
 }
 
 export function ChatProvider({ children }: ChatProviderProps) {
@@ -176,6 +191,49 @@ export function ChatProvider({ children }: ChatProviderProps) {
     setInput(e.target.value)
   }, [])
 
+  const appendLocalMessages = useCallback(
+    (userText: string, assistantText: string) => {
+      const now = Date.now()
+      const userMessage: UIMessage = {
+        id: `local-user-${now}`,
+        role: 'user',
+        parts: [{ type: 'text', text: userText }],
+      }
+      const assistantMessage: UIMessage = {
+        id: `local-assistant-${now + 1}`,
+        role: 'assistant',
+        parts: [{ type: 'text', text: assistantText }],
+      }
+      const nextMessages = [...chat.messages, userMessage, assistantMessage]
+      setMessages(nextMessages)
+
+      if (!urlConversationId) return
+      const title = extractTitleFromMessages(nextMessages, useChatStore.getState().conversations, urlConversationId)
+      storeConversation(urlConversationId, title)
+      useChatStore.getState().setMessages(urlConversationId, nextMessages)
+    },
+    [chat.messages, setMessages, storeConversation, urlConversationId]
+  )
+
+  const tryHandleWatchlistCommand = useCallback(
+    (text: string): boolean => {
+      const command = parseWatchlistCommand(text)
+      if (!command) return false
+
+      const symbol = command.symbol.trim().toUpperCase()
+      if (command.action === 'add') {
+        useWatchlistStore.getState().upsertToken({ symbol })
+        appendLocalMessages(text, `${symbol} has been pinned. Use the pinned strip for quick access.`)
+        return true
+      }
+
+      useWatchlistStore.getState().removeBySymbol(symbol)
+      appendLocalMessages(text, `${symbol} has been removed from your watchlist.`)
+      return true
+    },
+    [appendLocalMessages]
+  )
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
@@ -187,11 +245,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
       analytics.trackChatMessage()
 
+      if (tryHandleWatchlistCommand(messageToSend)) return
+
       await chat.sendMessage({
         text: messageToSend,
       })
     },
-    [input, chat]
+    [input, chat, tryHandleWatchlistCommand]
   )
 
   const handleSubmitCallback = useCallback(
@@ -204,9 +264,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const guardedSendMessage = useCallback(
     async (params: Parameters<typeof chat.sendMessage>[0]) => {
       if (chat.messages.length >= MAX_MESSAGES_PER_CONVERSATION) return
+      if (params && 'text' in params && typeof params.text === 'string' && tryHandleWatchlistCommand(params.text)) return
       await chat.sendMessage(params)
     },
-    [chat]
+    [chat, tryHandleWatchlistCommand]
   )
 
   const stopCallback = useCallback(() => {

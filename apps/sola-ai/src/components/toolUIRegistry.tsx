@@ -6,6 +6,8 @@ import { CheckWalletCapabilitiesUI } from './tools/CheckWalletCapabilitiesUI'
 import { GetAccountUI } from './tools/GetAccountUI'
 import { GetAllowanceUI } from './tools/GetAllowanceUI'
 import { GetAssetsUI } from './tools/GetAssetsUI'
+import { GetAssetPricesUI } from './tools/GetAssetPricesUI'
+import { HistoricalPricesUI } from './tools/HistoricalPricesUI'
 import { GetTransactionHistoryUI } from './tools/GetTransactionHistoryUI'
 import { InitiateSwapUI } from './tools/InitiateSwapUI'
 import { NewCoinsUI } from './tools/NewCoinsUI'
@@ -36,6 +38,7 @@ const TOOL_UI_REGISTRY: ToolUIComponentMap = {
   switchNetworkTool: { component: SwitchNetworkUI, displayName: 'Switch Network' },
   portfolioTool: { component: PortfolioUI, displayName: 'Portfolio' },
   getAssetsTool: { component: GetAssetsUI, displayName: 'Get Assets' },
+  getAssetPricesTool: { component: GetAssetPricesUI, displayName: 'Asset Prices' },
   lookupExternalAddress: { component: GetAccountUI, displayName: 'Lookup Address' },
   transactionHistoryTool: { component: GetTransactionHistoryUI, displayName: 'Transaction History' },
   getAllowanceTool: { component: GetAllowanceUI, displayName: 'Get Allowance' },
@@ -43,6 +46,7 @@ const TOOL_UI_REGISTRY: ToolUIComponentMap = {
   getTrendingTokensTool: { component: TrendingTokensUI, displayName: 'Trending Tokens' },
   getTopGainersLosersTool: { component: TopGainersLosersUI, displayName: 'Top Gainers & Losers' },
   getNewCoinsTool: { component: NewCoinsUI, displayName: 'New Coins' },
+  getHistoricalPricesTool: { component: HistoricalPricesUI, displayName: 'Historical Prices' },
   checkWalletCapabilitiesTool: { component: CheckWalletCapabilitiesUI, displayName: 'Wallet Capabilities' },
   vaultDepositTool: { component: VaultDepositUI, displayName: 'Vault Deposit' },
   vaultWithdrawTool: { component: VaultWithdrawUI, displayName: 'Vault Withdraw' },

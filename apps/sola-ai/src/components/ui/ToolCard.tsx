@@ -19,7 +19,9 @@ const ToolCardRoot = ({
     <CollapsiblePrimitive.Root
       defaultOpen={defaultOpen}
       className={cn(
-        'w-full sm:min-w-[512px] sm:max-w-[512px] rounded-lg border border-border bg-whiteAlpha-50',
+        'group/tool-card w-full sm:min-w-[512px] sm:max-w-[512px] rounded-xl border border-border/80 bg-whiteAlpha-50/80 backdrop-blur-sm',
+        'transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/10',
+        'data-[state=open]:border-primary/30 data-[state=open]:bg-whiteAlpha-100/80',
         className
       )}
     >
@@ -31,7 +33,14 @@ const ToolCardRoot = ({
 const ToolCardHeader = ({ children, className }: { children: ReactNode; className?: string }) => {
   return (
     <CollapsiblePrimitive.Trigger asChild>
-      <div className={cn('flex flex-col gap-1 cursor-pointer p-4', className)}>{children}</div>
+      <div
+        className={cn(
+          'flex cursor-pointer flex-col gap-1 p-4 transition-colors duration-200 group-hover/tool-card:bg-whiteAlpha-100/40',
+          className
+        )}
+      >
+        {children}
+      </div>
     </CollapsiblePrimitive.Trigger>
   )
 }
@@ -42,7 +51,9 @@ const ToolCardHeaderRow = ({ children, className }: { children: ReactNode; class
 
 const ToolCardContent = ({ children, className }: { children: ReactNode; className?: string }) => {
   return (
-    <CollapsiblePrimitive.Content className={cn('space-y-4 px-4', className)}>{children}</CollapsiblePrimitive.Content>
+    <CollapsiblePrimitive.Content className={cn('tool-card-content space-y-4 px-4', className)}>
+      {children}
+    </CollapsiblePrimitive.Content>
   )
 }
 

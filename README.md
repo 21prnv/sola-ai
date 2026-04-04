@@ -6,7 +6,7 @@ Monorepo aligned with **agentic-chat**: Dynamic + Wagmi (EVM) + Solana, AI SDK s
 
 - **Frontend** (`apps/sola-ai`): React 19, Vite 7, Tailwind 4, React Router, TanStack Query, AI SDK v5 (`DefaultChatTransport`), Dynamic Labs, Wagmi/viem
 - **Backend** (`apps/sola-server`): Bun, Hono, `streamText` + tools (same pattern as agentic-chat)
-- **Packages**: `@sola-ai/caip`, `@sola-ai/types`, `@sola-ai/utils` (replacing `@shapeshiftoss/*` in the ported UI)
+- **Packages**: `@sola-ai/caip`, `@sola-ai/types`, `@sola-ai/utils`
 
 ## Quick start
 
@@ -33,7 +33,6 @@ The dev server proxies `/api/*` to `http://localhost:8787` so you can also hit t
 
 The **entire** `agentic-chat/apps/agentic-chat/src` tree was copied into `apps/sola-ai/src`, with:
 
-- Imports rewritten: `@shapeshiftoss/*` → `@sola-ai/*` and `@shapeshiftoss/agentic-server` → `@sola-ai/server` (type-only)
 - `ChatProvider` + portfolio client using `getSolaServerBaseUrl()` (`VITE_AGENTIC_SERVER_BASE_URL` || `VITE_API_URL` || `http://localhost:8787`)
 - Zustand persist store name / export filenames branded for Sola AI
 - Monorepo **override** `@solana/web3.js@1.98.4` to avoid duplicate web3.js types

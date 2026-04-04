@@ -31,10 +31,16 @@ export const AssistantMessage = memo(function AssistantMessage({ message, animat
   const renderedParts = useMemo(
     () =>
       message.parts.map((part, index) => {
+        const partMotionStyle = { animationDelay: `${index * 36}ms` }
+
         if (part.type === 'text') {
           if (index === lastTextIndex && textContent) {
             return (
-              <div key={`text-${index}`} className="[&>div]:contents [&>div>*:last-child]:inline">
+              <div
+                key={`text-${index}`}
+                className="message-part-enter [&>div]:contents [&>div>*:last-child]:inline"
+                style={partMotionStyle}
+              >
                 <Markdown animated={animated}>{part.text}</Markdown>
                 <CopyButton
                   value={textContent}
@@ -44,9 +50,9 @@ export const AssistantMessage = memo(function AssistantMessage({ message, animat
             )
           }
           return (
-            <Markdown key={`text-${index}`} animated={animated}>
-              {part.text}
-            </Markdown>
+            <div key={`text-${index}`} className="message-part-enter" style={partMotionStyle}>
+              <Markdown animated={animated}>{part.text}</Markdown>
+            </div>
           )
         }
 
@@ -59,7 +65,11 @@ export const AssistantMessage = memo(function AssistantMessage({ message, animat
             return null
           }
 
-          return <ToolUIComponent key={`tool-${toolCallId}`} toolPart={part as DynamicToolUIPart} />
+          return (
+            <div key={`tool-${toolCallId}`} className="message-part-enter" style={partMotionStyle}>
+              <ToolUIComponent toolPart={part as DynamicToolUIPart} />
+            </div>
+          )
         }
 
         return null
@@ -68,7 +78,7 @@ export const AssistantMessage = memo(function AssistantMessage({ message, animat
   )
 
   return (
-    <div className="group/msg flex justify-start">
+    <div className="group/msg message-enter flex justify-start">
       <div className="max-w-[80%] space-y-2">{renderedParts}</div>
     </div>
   )

@@ -270,7 +270,7 @@ Select the single tool matching the user's intent (these names are internal — 
 
 | Intent | Tool |
 |---|---|
-| Spot price only — "what is ETH worth" (no swap, no UI card) | getAssetPricesTool |
+| Spot price only — "what is ETH worth" (no swap) | getAssetPricesTool |
 | Historical prices / price at past date / price growth over time | getHistoricalPricesTool |
 | Detailed market data (UI card) | getAssetsTool |
 | Trending/gainers/new coins | getTrendingTokensTool, getTopGainersLosersTool, getNewCoinsTool |

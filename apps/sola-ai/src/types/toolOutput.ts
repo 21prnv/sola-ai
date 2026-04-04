@@ -1,6 +1,8 @@
 import type {
   AssetWithMarketData,
   CheckWalletCapabilitiesOutput,
+  GetAssetPricesOutput,
+  GetHistoricalPricesOutput,
   InitiateSwapOutput,
   PortfolioOutput,
   ReceiveOutput,
@@ -22,6 +24,7 @@ export type ToolOutputMap = {
   switchNetworkTool: SwitchNetworkOutput
   portfolioTool: PortfolioOutput
   getAssetsTool: { assets: AssetWithMarketData[] }
+  getAssetPricesTool: GetAssetPricesOutput
   lookupExternalAddress: never
   transactionHistoryTool: { transactions?: ParsedTransaction[]; metadata?: { networksChecked?: string[] } }
   getAllowanceTool: unknown
@@ -29,6 +32,7 @@ export type ToolOutputMap = {
   getTrendingTokensTool: { tokens: TrimmedTrendingCoin[] }
   getTopGainersLosersTool: { gainers: TrimmedGainerLoserCoin[]; losers: TrimmedGainerLoserCoin[]; duration: string }
   getNewCoinsTool: { coins: TrimmedNewCoin[] }
+  getHistoricalPricesTool: GetHistoricalPricesOutput
   checkWalletCapabilitiesTool: CheckWalletCapabilitiesOutput
   vaultDepositTool: VaultDepositOutput
   vaultWithdrawTool: VaultWithdrawOutput

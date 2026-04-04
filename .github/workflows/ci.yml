@@ -7,20 +7,43 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
-  check:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v1
         with:
           bun-version: 1.3.2
 
+      - uses: actions/cache@v4
+        with:
+          path: .eslintcache
+          key: eslint-${{ hashFiles('eslint.config.js') }}
+          restore-keys: eslint-
+
       - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Create Sentry release and upload source maps
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: sola-ai
+          SENTRY_PROJECT: sola-ai
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+          VERSION=$(sentry-cli releases propose-version)
+          sentry-cli releases new "$VERSION"
+          sentry-cli releases set-commits "$VERSION" --auto --ignore-missing
+          sentry-cli sourcemaps upload --release="$VERSION" apps/sola-ai/dist
+          sentry-cli releases finalize "$VERSION"
+
       - run: bun run type-check
       - run: bun run lint
       - run: bun run test
-      - run: bun run build
