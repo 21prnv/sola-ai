@@ -35,7 +35,8 @@ export default defineConfig(() => ({
   build: {
     outDir: './dist',
     emptyOutDir: true,
-    reportCompressedSize: true,
+    // Skip gzip reporting to reduce peak memory on large dependency graphs.
+    reportCompressedSize: false,
     sourcemap: true,
     commonjsOptions: {
       transformMixedEsModules: true,

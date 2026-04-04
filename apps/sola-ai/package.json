@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist node_modules",
-    "build": "bun vite build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' bun vite build",
     "dev": "bun vite",
     "preview": "bun build && bun vite preview",
     "type-check": "tsc --noEmit",
