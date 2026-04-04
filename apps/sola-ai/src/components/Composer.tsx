@@ -1,14 +1,24 @@
-import { MessageSquareOff, SendHorizontal, Square } from 'lucide-react'
+import { ArrowUp, MessageSquareOff, Square } from 'lucide-react'
 import type { FormEvent, KeyboardEvent } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useChatContext } from '../providers/ChatProvider'
 
 import { Button } from './ui/Button'
-import { IconButton } from './ui/IconButton'
+
+const TEXTAREA_MAX_HEIGHT = 240
 
 export function Composer() {
   const { input, handleInputChange, handleSubmit, isLoading, isAtMessageLimit, stop } = useChatContext()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT)}px`
+  }, [input])
 
   if (isAtMessageLimit) {
     return (
@@ -37,48 +47,45 @@ export function Composer() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (!input.trim() || isLoading) return
-
-      // Create a synthetic form event
       const form = e.currentTarget.form
       if (form) {
-        const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-        form.dispatchEvent(submitEvent)
+        form.requestSubmit()
       }
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex items-end gap-2">
-      <textarea
-        value={input}
-        onChange={handleInputChange}
-        onKeyDown={onKeyDown}
-        placeholder="Write a message..."
-        rows={1}
-        className="flex-1 resize-none rounded-lg border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        style={
-          {
-            minHeight: '48px',
-            maxHeight: '140px',
-            fieldSizing: 'content',
-          } as React.CSSProperties
-        }
-        autoFocus
-        autoComplete="new-password"
-        data-form-type="other"
-        data-lpignore="true"
-        data-1p-ignore="true"
-      />
-
-      <IconButton
-        type={isLoading ? 'button' : 'submit'}
-        onClick={isLoading ? stop : undefined}
-        disabled={!isLoading && !input.trim()}
-        size="xl"
-        variant="default"
-        icon={isLoading ? <Square className="h-5 w-5" /> : <SendHorizontal className="h-5 w-5" />}
-        label={isLoading ? 'Stop' : 'Send'}
-      />
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="overflow-hidden rounded-3xl border border-foreground/10 bg-muted/50 shadow-xs backdrop-blur-md">
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={onKeyDown}
+          placeholder="Ask me anything..."
+          rows={1}
+          className="text-primary min-h-[64px] w-full resize-none border-none bg-transparent px-6 py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+          style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
+          autoFocus
+          autoComplete="new-password"
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
+        />
+        <div className="flex items-center justify-end gap-2 px-3 pb-3">
+          <Button
+            type={isLoading ? 'button' : 'submit'}
+            onClick={isLoading ? stop : undefined}
+            variant="default"
+            size="icon"
+            className="h-8 w-8 shrink-0 rounded-full"
+            disabled={!isLoading && !input.trim()}
+            aria-label={isLoading ? 'Stop' : 'Send message'}
+          >
+            {isLoading ? <Square className="size-5 fill-current" /> : <ArrowUp className="size-5" />}
+          </Button>
+        </div>
+      </div>
     </form>
   )
 }

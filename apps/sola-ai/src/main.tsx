@@ -17,7 +17,7 @@ const isProduction = import.meta.env.PROD
 // Initialize Sentry (production only)
 if (isProduction) {
   Sentry.init({
-    dsn: 'https://5029b06bf89b9e74ac64b3b8fc3e379d@o4507174990905344.ingest.de.sentry.io/4510434281783376',
+    dsn: 'https://95ef4505bd9dcacd40018abe1948c017@o4511162959724544.ingest.us.sentry.io/4511162970341376',
     sendDefaultPii: false,
     enableLogs: true,
     beforeSend(event, hint) {

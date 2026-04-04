@@ -65,7 +65,7 @@ export async function executeGetAssetPrices(input: GetAssetPricesInput): Promise
 }
 
 export const getAssetPricesTool = {
-  description: `Quick spot price lookups without UI cards. Returns price and 24h change only. Accepts asset symbols/names or assetIds.
+  description: `Quick spot price lookups with compact UI cards. Returns price and 24h change only. Accepts asset symbols/names or assetIds.
 
 Do NOT use for swap quotes, routes, aggregators, or questions like "how much would I get if I swap X to Y" — those require initiateSwap (shows live Rango routes in the UI).
 

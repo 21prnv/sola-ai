@@ -100,13 +100,13 @@ const TxStepCardStep = ({
   return (
     <div
       className={cn(
-        'relative flex items-center rounded-md px-2 -mx-2',
-        hasActiveSubtitle ? 'min-h-[2.5rem] py-1.5' : 'h-10',
-        status === StepStatus.IN_PROGRESS && 'bg-whiteAlpha-200'
+        'relative -mx-2 flex items-center rounded-md px-2 transition-colors duration-300',
+        hasActiveSubtitle ? 'min-h-10 py-1.5' : 'h-10',
+        status === StepStatus.IN_PROGRESS && 'bg-whiteAlpha-200/90 shadow-[0_0_0_1px_var(--color-whiteAlpha-200)]'
       )}
     >
       <div className={cn('flex items-center gap-2', getStatusStyles(), className)}>
-        <div className="relative flex-shrink-0 z-10">
+        <div className="relative shrink-0 z-10">
           <div className="flex flex-col items-center">
             <div
               className={cn(
@@ -149,7 +149,7 @@ const TxStepCardSwapPair = ({
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <span className="text-xl font-bold">{fromSymbol}</span>
-      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+      <div className="w-6 h-6 shrink-0 rounded-full bg-muted flex items-center justify-center">
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
       <span className="text-xl font-bold">{toSymbol}</span>

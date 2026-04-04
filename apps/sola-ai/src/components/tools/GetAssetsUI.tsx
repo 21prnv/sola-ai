@@ -1,11 +1,14 @@
-import { TrendingDown, TrendingUp } from 'lucide-react'
+import { ChartLine, Pin, PinOff, TrendingDown, TrendingUp } from 'lucide-react'
 import React, { useState } from 'react'
 
 import { bnOrZero } from '@/lib/bignumber'
 import { formatCompactNumber, formatFiat } from '@/lib/number'
+import { useChatContext } from '@/providers/ChatProvider'
+import { buildWatchlistKey, useWatchlistStore } from '@/stores/watchlistStore'
 
 import { Amount } from '../ui/Amount'
 import { AssetIcon } from '../ui/AssetIcon'
+import { Button } from '../ui/Button'
 import { ToolCard } from '../ui/ToolCard'
 
 import { useToolStateRender } from './toolUIHelpers'
@@ -40,6 +43,10 @@ function StatMetric({ label, value }: { label: string; value: React.ReactNode })
 export function GetAssetsUI({ toolPart }: ToolUIComponentProps<'getAssetsTool'>) {
   const { state, output, input } = toolPart
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const { sendMessage } = useChatContext()
+  const upsertToken = useWatchlistStore(store => store.upsertToken)
+  const removeToken = useWatchlistStore(store => store.removeToken)
+  const isPinned = useWatchlistStore(store => store.isPinned)
 
   const asset = output?.assets?.[0]
   const searchTerm = (input as { searchTerm?: string })?.searchTerm
@@ -70,6 +77,9 @@ export function GetAssetsUI({ toolPart }: ToolUIComponentProps<'getAssetsTool'>)
     return vol.div(mcap).times(100).toFixed(4)
   })()
 
+  const watchlistKey = buildWatchlistKey(asset.symbol, asset.network, asset.assetId)
+  const pinned = isPinned(watchlistKey)
+
   return (
     <ToolCard.Root>
       <ToolCard.Header>
@@ -84,7 +94,7 @@ export function GetAssetsUI({ toolPart }: ToolUIComponentProps<'getAssetsTool'>)
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-end gap-2">
               <span className="text-[18px] font-bold leading-7">
                 <Amount.Fiat value={asset.price} />
               </span>
@@ -94,6 +104,42 @@ export function GetAssetsUI({ toolPart }: ToolUIComponentProps<'getAssetsTool'>)
                   <span className="text-sm font-medium">{priceChange24h.text}</span>
                 </div>
                 <span className="text-xs text-muted-foreground font-normal">24h</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    void sendMessage({
+                      text: `Show me the historical price chart for ${asset.symbol.toUpperCase()} over the last 30 days.`,
+                    })
+                  }
+                  className="h-7 px-2 text-xs"
+                >
+                  <ChartLine className="size-3.5" />
+                  Open chart
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (pinned) {
+                      removeToken(watchlistKey)
+                    } else {
+                      upsertToken({
+                        symbol: asset.symbol,
+                        name: asset.name,
+                        assetId: asset.assetId,
+                        icon: asset.icon,
+                        network: asset.network,
+                      })
+                    }
+                  }}
+                  className="h-7 px-2 text-xs"
+                >
+                  {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+                  {pinned ? 'Unpin' : 'Pin'}
+                </Button>
               </div>
             </div>
           </div>

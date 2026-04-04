@@ -9,7 +9,6 @@ import { EVM_CAIP_IDS, SOLANA_CAIP_ID } from '@/lib/chains'
 // WalletConnect only exposes a single BIP-44 account (Account #0), so users
 // with assets in additional accounts will see incomplete portfolio balances.
 // Fixing this requires supporting native/injected wallet connections that
-// allow BIP-44 derivation path iteration (as the main ShapeShift app does).
 interface WalletConnectConnector {
   isWalletConnect?: boolean
   getSupportedNetworks?: () => Promise<string[]>

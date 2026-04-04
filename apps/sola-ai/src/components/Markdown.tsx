@@ -61,7 +61,7 @@ function AnimatedParagraph({ children, className }: { children: ReactNode; class
   return (
     <p className={cn('mb-5 mt-5 leading-7 first:mt-0 last:mb-0', className)}>
       {segments.map((segment, idx) => (
-        <span key={`${id}-${idx}`} className="fade-segment" style={{ animationDelay: `${idx * 1.5}ms` }}>
+        <span key={`${id}-${idx}`} className="fade-segment" style={{ animationDelay: `${idx * 18}ms` }}>
           {segment}
         </span>
       ))}
@@ -160,7 +160,7 @@ export function Markdown({ children, animated = false }: MarkdownProps) {
           th: ({ className, ...props }) => (
             <th
               className={cn(
-                'bg-muted px-4 py-2 text-left font-bold first:rounded-tl-lg last:rounded-tr-lg [&[align=center]]:text-center [&[align=right]]:text-right',
+                'bg-muted px-4 py-2 text-left font-bold first:rounded-tl-lg last:rounded-tr-lg [[align=center]]:text-center [[align=right]]:text-right',
                 className
               )}
               {...props}
@@ -169,7 +169,7 @@ export function Markdown({ children, animated = false }: MarkdownProps) {
           td: ({ className, ...props }) => (
             <td
               className={cn(
-                'border-b border-l px-4 py-2 text-left last:border-r [&[align=center]]:text-center [&[align=right]]:text-right',
+                'border-b border-l px-4 py-2 text-left last:border-r [[align=center]]:text-center [[align=right]]:text-right',
                 className
               )}
               {...props}

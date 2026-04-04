@@ -55,6 +55,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "framer-motion": "^12.38.0",
     "get-starknet": "^4.0.0",
     "idb-keyval": "^6.2.2",
     "immer": "^10.1.3",
