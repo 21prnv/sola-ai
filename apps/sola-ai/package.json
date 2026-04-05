@@ -7,6 +7,7 @@
     "clean": "rm -rf dist node_modules",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' bun vite build",
     "dev": "bun vite",
+    "start": "bun vite preview",
     "preview": "bun build && bun vite preview",
     "type-check": "tsc --noEmit",
     "test": "bun test"

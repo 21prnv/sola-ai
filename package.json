@@ -17,6 +17,7 @@
     "dev:frontend": "bun run --filter @sola-ai/frontend dev",
     "dev:backend": "bun run --filter @sola-ai/server dev",
     "build": "bun run --filter @sola-ai/frontend build && bun run --filter @sola-ai/server build",
+    "start:frontend": "bun run --filter @sola-ai/frontend start",
     "type-check": "bun run --filter '*' type-check",
     "test": "bun run --filter @sola-ai/server test && bun run --filter @sola-ai/frontend test",
     "lint": "eslint .",

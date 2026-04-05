@@ -22,9 +22,11 @@ export default defineConfig(() => ({
       },
     },
   },
+  // Production preview (e.g. Railway): listen on all interfaces and PORT; local fallback when PORT unset.
   preview: {
-    port: 4300,
-    host: 'localhost',
+    host: '0.0.0.0',
+    port: Number(process.env.PORT) || 4173,
+    strictPort: false,
   },
   resolve: {
     alias: {
