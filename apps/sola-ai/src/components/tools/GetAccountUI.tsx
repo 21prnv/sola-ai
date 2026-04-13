@@ -19,8 +19,8 @@ export function GetAccountUI({ toolPart }: ToolUIComponentProps<'lookupExternalA
 
   const stateRender = useToolStateRender(state, {
     loading: `Looking up ${accountDetailsText}`,
-    error: `Failed to look up ${accountDetailsText} ❌`,
-    success: `Found ${accountDetailsText} ✅`,
+    error: `Failed to look up ${accountDetailsText}`,
+    success: `Found ${accountDetailsText}`,
   })
 
   if (stateRender) return stateRender

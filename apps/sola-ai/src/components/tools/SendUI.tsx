@@ -1,14 +1,16 @@
 import { CHAIN_NAMESPACE, fromChainId } from '@sola-ai/caip'
 import type { SendOutput } from '@sola-ai/server'
+import { ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Execution } from '@/components/Execution'
 import { useExecuteOnce } from '@/hooks/useExecuteOnce'
 import { useToolExecution } from '@/hooks/useToolExecution'
 import { toolStateToStepStatus } from '@/lib/executionState'
+import { getExplorerUrl } from '@/lib/explorers'
 import { analytics } from '@/lib/mixpanel'
 import { switchNetworkStep } from '@/lib/steps/switchNetworkStep'
-import { firstFourLastFour } from '@/lib/utils'
+import { cn, firstFourLastFour } from '@/lib/utils'
 import { withWalletLock } from '@/lib/walletMutex'
 import type { SolanaWalletSigner } from '@/utils/chains/types'
 import { parseSolaRangoEnvelope } from '@/utils/rango/parseEnvelope'
@@ -174,6 +176,35 @@ export function SendUI({ toolPart }: ToolUIComponentProps<'sendTool'>) {
             />
             <Execution.Step index={SEND_STEPS.SEND} label="Sign and send transaction" connectorTop />
           </Execution.Stepper>
+
+          {/* Optimistic pending state — shows immediately after tx is signed */}
+          {ctx.state.meta.txHash && !ctx.state.terminal && (
+            <div className="mx-4 mb-4 flex items-center gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2">
+              <div className="size-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                Transaction submitted — waiting for confirmation
+              </span>
+            </div>
+          )}
+
+          {/* Success: View in Explorer */}
+          {ctx.state.terminal && !ctx.state.error && ctx.state.meta.txHash && networkName && (
+            <div className="px-4 pb-4">
+              <a
+                href={getExplorerUrl(networkName, ctx.state.meta.txHash)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex w-full items-center justify-center gap-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-2 text-sm font-medium text-foreground',
+                  'transition-all hover:bg-muted/60 hover:border-primary/25'
+                )}
+              >
+                <ExternalLink className="size-3.5" />
+                View in Explorer
+              </a>
+            </div>
+          )}
+
           <Execution.ErrorFooter />
         </TxStepCard.Root>
       </Execution.HistoricalGuard>

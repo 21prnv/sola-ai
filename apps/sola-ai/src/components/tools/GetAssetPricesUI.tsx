@@ -79,7 +79,7 @@ export function GetAssetPricesUI({ toolPart }: ToolUIComponentProps<'getAssetPri
             return (
               <div key={price.assetId} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <AssetIcon symbol={price.symbol} className="h-9 w-9" />
+                  <AssetIcon icon={price.icon} symbol={price.symbol} className="h-9 w-9" />
                   <div>
                     <div className="text-sm font-medium leading-tight">{price.name}</div>
                     <div className="text-xs text-muted-foreground">{price.symbol.toUpperCase()}</div>

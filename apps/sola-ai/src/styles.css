@@ -2,9 +2,14 @@
 @import 'tw-animate-css';
 @import './themes.css';
 
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: 'Geist', sans-serif;
+  --font-serif: 'IBM Plex Serif', serif;
+  --font-mono: 'Geist Mono', monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -74,6 +79,9 @@
 
 :root {
   --radius: 0.5rem;
+  --font-sans: 'Geist', sans-serif;
+  --font-serif: 'IBM Plex Serif', serif;
+  --font-mono: 'Geist Mono', monospace;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -147,7 +155,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Geist', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow: auto;
+  }
+  code {
+    font-family: 'Geist Mono', monospace;
   }
 
   *::-webkit-scrollbar {
@@ -313,4 +327,182 @@
     transform: translateY(0);
     filter: blur(0);
   }
+}
+
+/* ── Typing indicator ── */
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* ── Swap UI animations ── */
+
+/* Route card staggered entrance */
+@keyframes swapRouteSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.swap-route-enter {
+  animation: swapRouteSlideIn 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Animated swap arrow pulse */
+@keyframes swapArrowFlow {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(3px);
+    opacity: 1;
+  }
+}
+
+.swap-arrow-active {
+  animation: swapArrowFlow 1.5s ease-in-out infinite;
+}
+
+/* Stepper active step glow pulse */
+@keyframes stepGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 oklch(0.608 0.246 265 / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px oklch(0.608 0.246 265 / 0);
+  }
+}
+
+.step-glow-pulse {
+  animation: stepGlowPulse 2s ease-in-out infinite;
+}
+
+/* SVG checkmark draw animation */
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmarkCircleFill {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.checkmark-circle {
+  animation: checkmarkCircleFill 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.checkmark-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmarkDraw 350ms ease-out 200ms forwards;
+}
+
+/* Success particle burst */
+@keyframes particleBurst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Flip animation for rate counter */
+@keyframes flipDown {
+  0% {
+    transform: translateY(-100%) rotateX(90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes flipUp {
+  0% {
+    transform: translateY(0) rotateX(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%) rotateX(-90deg);
+    opacity: 0;
+  }
+}
+
+.rate-flip-enter {
+  animation: flipDown 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Countdown bar smooth gradient */
+.countdown-bar {
+  background: linear-gradient(90deg, var(--countdown-from), var(--countdown-to));
+  transition: width 1s linear, --countdown-from 2s ease, --countdown-to 2s ease;
+}
+
+/* Route card glassmorphism hover glow */
+.swap-route-card {
+  backdrop-filter: blur(8px);
+  transition: all 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.swap-route-card:hover {
+  transform: translateY(-1px);
+}
+
+.swap-route-card[data-selected='true'] {
+  box-shadow: 0 0 20px -4px oklch(0.608 0.246 265 / 0.2),
+              0 0 8px -2px oklch(0.608 0.246 265 / 0.15);
+}
+
+/* Skeleton shimmer for route placeholder */
+@keyframes routeShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.route-skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in oklch, var(--muted-foreground) 12%, var(--muted)) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: routeShimmer 1.8s ease-in-out infinite;
 }

@@ -120,7 +120,7 @@ export function SwitchNetworkUI({ toolPart }: ToolUIComponentProps<'switchNetwor
   }
 
   if (isHistorical(toolCallId) && !getPersistedTransaction(toolCallId)) {
-    return <StatusText>⏭️ Network switch skipped (no saved data)</StatusText>
+    return <StatusText>Network switch skipped (no saved data)</StatusText>
   }
 
   if (phase === 'switching' || phase === 'idle') {

@@ -63,9 +63,20 @@ function wrapTool<TSchema, TExecute extends (args: never, walletContext?: Wallet
   return {
     description: tool.description,
     inputSchema: tool.inputSchema,
-    execute: (args: Parameters<TExecute>[0]) => {
-      console.log(`[Tool] ${name}:`, JSON.stringify(args, null, 2))
-      return tool.execute(args, walletContext)
+    execute: async (args: Parameters<TExecute>[0]) => {
+      console.log(`[Tool:call] ${name}`, JSON.stringify(args))
+      const start = Date.now()
+      try {
+        const result = await tool.execute(args, walletContext)
+        console.log(`[Tool:ok] ${name} (${Date.now() - start}ms)`, typeof result === 'object' ? JSON.stringify(result).slice(0, 300) : result)
+        return result
+      } catch (err) {
+        console.error(`[Tool:error] ${name} (${Date.now() - start}ms)`, {
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+        })
+        throw err
+      }
     },
   }
 }
@@ -452,11 +463,24 @@ export async function handleChatRequest(c: Context) {
       dynamicMultichainAddresses
     )
 
+    console.log('[Chat:request]', {
+      conversationId,
+      evmAddress: evmAddress ?? '(none)',
+      solanaAddress: solanaAddress ?? '(none)',
+      approvedChainIds: approvedChainIds ?? '(all)',
+      connectedWallets: Object.keys(walletContext.connectedWallets ?? {}),
+      messageCount: messages.length,
+    })
+
     // Convert UIMessages to ModelMessages
     const modelMessages = convertToModelMessages(messages as Parameters<typeof convertToModelMessages>[0])
 
+    const model = getModel()
+    const tools = buildTools(walletContext)
+    console.log('[Chat:stream] model:', (model as any).modelId ?? 'unknown', '| tools:', Object.keys(tools).length, '→', Object.keys(tools).join(', '))
+
     const result = streamText({
-      model: getModel(),
+      model,
       messages: modelMessages,
       system: buildSystemPrompt(
         evmAddress,
@@ -467,7 +491,7 @@ export async function handleChatRequest(c: Context) {
       ),
       temperature: 0.3,
       stopWhen: stepCountIs(5),
-      tools: buildTools(walletContext),
+      tools,
       experimental_transform: smoothStream({ chunking: 'word', delayInMs: 3 }),
       // Venice-specific parameters to disable reasoning for faster responses
       ...(getProviderName() === 'venice' && {
@@ -481,12 +505,21 @@ export async function handleChatRequest(c: Context) {
         },
       }),
       onError: ({ error }) => {
-        console.error('[Stream Error]', {
-          message: error instanceof Error ? error.message : String(error),
-          name: error instanceof Error ? error.name : 'Unknown',
-          cause: error instanceof Error ? error.cause : undefined,
-          stack: error instanceof Error ? error.stack : undefined,
-        })
+        console.error('[Stream:error] ─────────────────────────────')
+        console.error('[Stream:error] raw:', JSON.stringify(error, Object.getOwnPropertyNames(error as object), 2))
+        console.error('[Stream:error] type:', typeof error)
+        if (error instanceof Error) {
+          console.error('[Stream:error] message:', error.message)
+          console.error('[Stream:error] name:', error.name)
+          if (error.cause) console.error('[Stream:error] cause:', JSON.stringify(error.cause, null, 2))
+          if (error.stack) console.error('[Stream:error] stack:', error.stack)
+        } else if (error && typeof error === 'object') {
+          // AI SDK sometimes passes raw objects, not Error instances
+          for (const [key, val] of Object.entries(error as Record<string, unknown>)) {
+            console.error(`[Stream:error] .${key}:`, typeof val === 'object' ? JSON.stringify(val, null, 2) : val)
+          }
+        }
+        console.error('[Stream:error] ─────────────────────────────')
       },
       onStepFinish: ({ content, warnings }) => {
         for (const part of content) {

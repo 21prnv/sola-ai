@@ -53,7 +53,7 @@ export function GetAssetsUI({ toolPart }: ToolUIComponentProps<'getAssetsTool'>)
 
   const stateRender = useToolStateRender(state, {
     loading: `Searching for ${searchTerm || 'assets'}`,
-    error: `Failed to fetch ${searchTerm || 'asset'} ❌`,
+    error: `Failed to fetch ${searchTerm || 'asset'}`,
   })
 
   if (stateRender) return stateRender

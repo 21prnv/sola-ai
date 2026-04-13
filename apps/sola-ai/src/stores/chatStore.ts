@@ -100,6 +100,7 @@ interface ChatState {
   isHistorical: (toolCallId: string) => boolean
   clearHistoricalTools: () => void
   hasRuntimeState: (toolCallId: string) => boolean
+  clearRuntimeState: (toolCallId: string) => void
   initializeRuntimeState: <T extends ToolExecutionState>(toolCallId: string, initialState: T) => void
   getRuntimeState: <T extends ToolExecutionState>(toolCallId: string, initialState: T) => T
   setRuntimeState: <T extends ToolExecutionState>(toolCallId: string, updater: (draft: T) => void) => void
@@ -185,6 +186,15 @@ export const useChatStore = create<ChatState>()(
 
       hasRuntimeState: (toolCallId: string) => {
         return get().runtimeToolStates.has(toolCallId)
+      },
+
+      clearRuntimeState: (toolCallId: string) => {
+        const currentStates = get().runtimeToolStates
+        if (currentStates.has(toolCallId)) {
+          const newStates = new Map(currentStates)
+          newStates.delete(toolCallId)
+          set({ runtimeToolStates: newStates })
+        }
       },
 
       initializeRuntimeState: <T extends ToolExecutionState>(toolCallId: string, initialState: T) => {
