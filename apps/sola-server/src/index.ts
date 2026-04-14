@@ -107,6 +107,84 @@ export {
 } from './tools/getCategories'
 export { getNewCoinsTool, executeGetNewCoins, type GetNewCoinsInput, type GetNewCoinsOutput } from './tools/getNewCoins'
 export {
+  searchPolymarketMarketsTool,
+  executeSearchPolymarketMarkets,
+  searchPolymarketMarketsSchema,
+  type SearchPolymarketMarketsInput,
+  type SearchPolymarketMarketsOutput,
+  type PolymarketMarket,
+  type PolymarketOutcome,
+} from './tools/searchPolymarketMarkets'
+export {
+  getPolymarketPriceTool,
+  executeGetPolymarketPrice,
+  getPolymarketPriceSchema,
+  type GetPolymarketPriceInput,
+  type GetPolymarketPriceOutput,
+  type OrderbookLevel,
+} from './tools/getPolymarketPrice'
+export {
+  approvePolymarketUsdcTool,
+  executeApprovePolymarketUsdc,
+  approvePolymarketUsdcSchema,
+  type ApprovePolymarketUsdcInput,
+  type ApprovePolymarketUsdcOutput,
+} from './tools/polymarket/approvePolymarketUsdc'
+export {
+  buildPolymarketOrderTool,
+  executeBuildPolymarketOrder,
+  buildPolymarketOrderSchema,
+  type BuildPolymarketOrderInput,
+  type BuildPolymarketOrderOutput,
+  type PolymarketOrderStruct,
+  type PolymarketTypedData,
+} from './tools/polymarket/buildPolymarketOrder'
+export {
+  submitPolymarketOrderTool,
+  executeSubmitPolymarketOrder,
+  submitPolymarketOrderSchema,
+  type SubmitPolymarketOrderInput,
+  type SubmitPolymarketOrderOutput,
+} from './tools/polymarket/submitPolymarketOrder'
+export {
+  buildPolymarketApiKeyRequestTool,
+  executeBuildPolymarketApiKeyRequest,
+  buildPolymarketApiKeyRequestSchema,
+  type BuildPolymarketApiKeyRequestInput,
+  type BuildPolymarketApiKeyRequestOutput,
+  type ClobAuthTypedData,
+} from './tools/polymarket/buildPolymarketApiKeyRequest'
+export {
+  createPolymarketApiKeyTool,
+  executeCreatePolymarketApiKey,
+  createPolymarketApiKeySchema,
+  type CreatePolymarketApiKeyInput,
+  type CreatePolymarketApiKeyOutput,
+} from './tools/polymarket/createPolymarketApiKey'
+export {
+  cancelPolymarketOrderTool,
+  executeCancelPolymarketOrder,
+  cancelPolymarketOrderSchema,
+  type CancelPolymarketOrderInput,
+  type CancelPolymarketOrderOutput,
+} from './tools/polymarket/cancelPolymarketOrder'
+export {
+  getPolymarketOrdersTool,
+  executeGetPolymarketOrders,
+  getPolymarketOrdersSchema,
+  type GetPolymarketOrdersInput,
+  type GetPolymarketOrdersOutput,
+  type PolymarketOpenOrder,
+} from './tools/polymarket/getPolymarketOrders'
+export {
+  getPolymarketPositionsTool,
+  executeGetPolymarketPositions,
+  getPolymarketPositionsSchema,
+  type GetPolymarketPositionsInput,
+  type GetPolymarketPositionsOutput,
+  type PolymarketPosition,
+} from './tools/polymarket/getPolymarketPositions'
+export {
   vaultBalanceTool,
   executeVaultBalance,
   vaultBalanceSchema,
@@ -135,6 +213,38 @@ export {
   type VaultWithdrawAllInput,
   type VaultWithdrawAllOutput,
 } from './tools/vault'
+export {
+  gasTrackerTool,
+  executeGasTracker,
+  type GasTrackerInput,
+  type GasTrackerOutput,
+  type GasChainEntry,
+} from './tools/gasTracker'
+export {
+  revokeApprovalTool,
+  executeRevokeApproval,
+  type RevokeApprovalInput,
+  type RevokeApprovalOutput,
+} from './tools/revokeApproval'
+export {
+  saveContactTool,
+  executeSaveContact,
+  type SaveContactInput,
+  type SaveContactOutput,
+} from './tools/saveContact'
+export {
+  listContactsTool,
+  executeListContacts,
+  type ListContactsInput,
+  type ListContactsOutput,
+} from './tools/listContacts'
+export {
+  portfolioPnlTool,
+  executePortfolioPnl,
+  type PortfolioPnlInput,
+  type PortfolioPnlOutput,
+  type AssetPnlEntry,
+} from './tools/portfolioPnl'
 export type { ActiveOrderSummary } from './utils/walletContextSimple'
 export {
   CHAIN_ID_TO_NETWORK,

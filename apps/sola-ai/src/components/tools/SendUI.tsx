@@ -206,6 +206,18 @@ export function SendUI({ toolPart }: ToolUIComponentProps<'sendTool'>) {
           )}
 
           <Execution.ErrorFooter />
+          {ctx.state.meta.txHash && networkName && (
+            <div className="px-4 pb-4">
+              <a
+                href={getExplorerUrl(networkName, ctx.state.meta.txHash as string)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 hover:underline"
+              >
+                View on explorer
+              </a>
+            </div>
+          )}
         </TxStepCard.Root>
       </Execution.HistoricalGuard>
     </Execution.Root>

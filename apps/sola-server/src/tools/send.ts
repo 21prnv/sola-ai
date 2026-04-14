@@ -5,6 +5,7 @@ import { sendSchema } from '../lib/schemas/sendSchemas'
 import type { TransactionData } from '../lib/schemas/swapSchemas'
 import { validateAddress } from '../utils/addressValidation'
 import { isNativeToken, resolveAsset } from '../utils/assetHelpers'
+import { resolveEnsIfNeeded } from '../utils/ensResolution'
 import { getBalance, validateSufficientBalance } from '../utils/balanceHelpers'
 import { isEvmChain, isRangoWalletEnvelopeChain, isSolanaChain } from '../utils/chains/helpers'
 import { calculateMaxSendAmount, formatEstimatedFee } from '../utils/feeEstimation'
@@ -29,15 +30,21 @@ export async function executeSend(input: SendInput, walletContext?: WalletContex
   // 2. Get sender address
   const from = getAddressForChain(walletContext, asset.chainId)
 
-  // 3. Validate recipient address
-  validateAddress(input.recipient, asset.chainId)
+  // 3. Resolve contact name, then ENS name if needed, then validate
+  let recipient = input.recipient
+  const contact = walletContext?.contacts?.find(c => c.name.toLowerCase() === recipient.trim().toLowerCase())
+  if (contact) {
+    recipient = contact.address
+  }
+  const { address: resolvedRecipient, ensName } = await resolveEnsIfNeeded(recipient)
+  validateAddress(resolvedRecipient, asset.chainId)
 
   // 4. Get balance and calculate send amount (handle "max")
   const balance = await getBalance(from, asset)
 
   let sendAmount: string
   if (input.amount.toLowerCase() === 'max') {
-    sendAmount = await calculateMaxSendAmount(asset, balance, from, input.recipient)
+    sendAmount = await calculateMaxSendAmount(asset, balance, from, resolvedRecipient)
   } else {
     // Validate amount
     if (!Number.isFinite(parseFloat(input.amount)) || parseFloat(input.amount) <= 0) {
@@ -50,10 +57,11 @@ export async function executeSend(input: SendInput, walletContext?: WalletContex
   }
 
   // 5. Build transaction
-  const txResult = await buildSendTransaction(asset, from, input.recipient, sendAmount)
+  const txResult = await buildSendTransaction(asset, from, resolvedRecipient, sendAmount)
 
-  // 6. Create summary
-  const summary = createSendSummary(asset, from, input.recipient, sendAmount, txResult)
+  // 6. Create summary (show ENS name in display if resolved)
+  const displayTo = ensName ? `${ensName} (${resolvedRecipient.slice(0, 6)}...${resolvedRecipient.slice(-4)})` : undefined
+  const summary = createSendSummary(asset, from, resolvedRecipient, sendAmount, txResult, displayTo)
 
   return {
     summary,
@@ -61,7 +69,7 @@ export async function executeSend(input: SendInput, walletContext?: WalletContex
     sendData: {
       assetId: asset.assetId,
       from,
-      to: input.recipient,
+      to: resolvedRecipient,
       amount: sendAmount,
       chainId: asset.chainId,
       asset,
@@ -113,7 +121,8 @@ function createSendSummary(
   from: string,
   to: string,
   amount: string,
-  txResult: { tx: TransactionData; needsAtaCreation?: boolean; rangoNetworkFee?: string }
+  txResult: { tx: TransactionData; needsAtaCreation?: boolean; rangoNetworkFee?: string },
+  displayTo?: string
 ): SendSummary {
   const assetPrice = parseFloat(asset.price || '0')
   const valueUSD = assetPrice > 0 ? (parseFloat(amount) * assetPrice).toFixed(2) : null
@@ -129,7 +138,7 @@ function createSendSummary(
     symbol: asset.symbol.toUpperCase(),
     amount,
     from: `${from.slice(0, 6)}...${from.slice(-4)}`,
-    to: `${to.slice(0, 6)}...${to.slice(-4)}`,
+    to: displayTo ?? `${to.slice(0, 6)}...${to.slice(-4)}`,
     network: asset.network,
     chainName: asset.network,
     estimatedFeeCrypto,
@@ -140,7 +149,7 @@ function createSendSummary(
 }
 
 export const sendTool = {
-  description: `Send crypto to an address.
+  description: `Send crypto to an address or ENS name (e.g. "vitalik.eth").
 
 UI CARD DISPLAYS: send amount, from/to addresses, network, and estimated fees.`,
   inputSchema: sendSchema,

@@ -2,7 +2,16 @@ import type { ComponentType } from 'react'
 
 import type { ToolName } from '@/types/toolOutput'
 
+import { ApprovePolymarketUsdcUI } from './tools/ApprovePolymarketUsdcUI'
+import { BuildPolymarketApiKeyRequestUI } from './tools/BuildPolymarketApiKeyRequestUI'
+import { BuildPolymarketOrderUI } from './tools/BuildPolymarketOrderUI'
+import { CancelPolymarketOrderUI } from './tools/CancelPolymarketOrderUI'
 import { CheckWalletCapabilitiesUI } from './tools/CheckWalletCapabilitiesUI'
+import { GetPolymarketOrdersUI } from './tools/GetPolymarketOrdersUI'
+import { GetPolymarketPositionsUI } from './tools/GetPolymarketPositionsUI'
+import { GetPolymarketPriceUI } from './tools/GetPolymarketPriceUI'
+import { SearchPolymarketMarketsUI } from './tools/SearchPolymarketMarketsUI'
+import { GasTrackerUI } from './tools/GasTrackerUI'
 import { GetAccountUI } from './tools/GetAccountUI'
 import { GetAllowanceUI } from './tools/GetAllowanceUI'
 import { GetAssetsUI } from './tools/GetAssetsUI'
@@ -10,9 +19,13 @@ import { GetAssetPricesUI } from './tools/GetAssetPricesUI'
 import { HistoricalPricesUI } from './tools/HistoricalPricesUI'
 import { GetTransactionHistoryUI } from './tools/GetTransactionHistoryUI'
 import { InitiateSwapUI } from './tools/InitiateSwapUI'
+import { ListContactsUI } from './tools/ListContactsUI'
 import { NewCoinsUI } from './tools/NewCoinsUI'
 import { PortfolioUI } from './tools/PortfolioUI'
+import { PortfolioPnlUI } from './tools/PortfolioPnlUI'
 import { ReceiveUI } from './tools/ReceiveUI'
+import { RevokeApprovalUI } from './tools/RevokeApprovalUI'
+import { SaveContactUI } from './tools/SaveContactUI'
 import { SendUI } from './tools/SendUI'
 import { SwitchNetworkUI } from './tools/SwitchNetworkUI'
 import type { ToolRendererProps, ToolUIComponentProps } from './tools/toolUIHelpers'
@@ -48,9 +61,24 @@ const TOOL_UI_REGISTRY: ToolUIComponentMap = {
   getNewCoinsTool: { component: NewCoinsUI, displayName: 'New Coins' },
   getHistoricalPricesTool: { component: HistoricalPricesUI, displayName: 'Historical Prices' },
   checkWalletCapabilitiesTool: { component: CheckWalletCapabilitiesUI, displayName: 'Wallet Capabilities' },
+  gasTrackerTool: { component: GasTrackerUI, displayName: 'Gas Tracker' },
+  revokeApprovalTool: { component: RevokeApprovalUI, displayName: 'Revoke Approval' },
+  saveContactTool: { component: SaveContactUI, displayName: 'Save Contact' },
+  listContactsTool: { component: ListContactsUI, displayName: 'Contacts' },
+  portfolioPnlTool: { component: PortfolioPnlUI, displayName: 'Portfolio PnL' },
   vaultDepositTool: { component: VaultDepositUI, displayName: 'Vault Deposit' },
   vaultWithdrawTool: { component: VaultWithdrawUI, displayName: 'Vault Withdraw' },
   vaultWithdrawAllTool: { component: VaultWithdrawAllUI, displayName: 'Vault Withdraw All' },
+  searchPolymarketMarketsTool: { component: SearchPolymarketMarketsUI, displayName: 'Polymarket Markets' },
+  getPolymarketPriceTool: { component: GetPolymarketPriceUI, displayName: 'Polymarket Price' },
+  approvePolymarketUsdcTool: { component: ApprovePolymarketUsdcUI, displayName: 'Approve USDC' },
+  buildPolymarketApiKeyRequestTool: { component: BuildPolymarketApiKeyRequestUI, displayName: 'Polymarket API Key' },
+  createPolymarketApiKeyTool: { component: null, displayName: 'Polymarket API Key' },
+  buildPolymarketOrderTool: { component: BuildPolymarketOrderUI, displayName: 'Polymarket Order' },
+  submitPolymarketOrderTool: { component: null, displayName: 'Submit Order' },
+  cancelPolymarketOrderTool: { component: CancelPolymarketOrderUI, displayName: 'Cancel Order' },
+  getPolymarketOrdersTool: { component: GetPolymarketOrdersUI, displayName: 'Open Orders' },
+  getPolymarketPositionsTool: { component: GetPolymarketPositionsUI, displayName: 'Positions' },
 }
 
 export function getToolUIComponent(toolName: string): ComponentType<ToolRendererProps> | null | undefined {

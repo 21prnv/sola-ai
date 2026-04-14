@@ -41,12 +41,19 @@ export interface KnownTransaction {
   network?: string
 }
 
+export interface ContactEntry {
+  name: string
+  address: string
+  network?: string
+}
+
 export interface WalletContext {
   connectedWallets?: Record<string, { address: string }>
   safeAddress?: string
   safeDeploymentState?: Record<number, SafeChainDeployment>
   registryOrders?: ActiveOrderSummary[]
   knownTransactions?: KnownTransaction[]
+  contacts?: ContactEntry[]
 }
 
 export function getAddressForNetwork(walletContext: WalletContext | undefined, network: Network): string {

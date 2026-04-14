@@ -6,6 +6,7 @@ import axios from 'axios'
 import { z } from 'zod'
 
 import { validateAddress } from '../utils/addressValidation'
+import { resolveEnsIfNeeded } from '../utils/ensResolution'
 
 export const getAccountSchema = z.object({
   address: z
@@ -25,9 +26,11 @@ export type GetAccountOutput = {
 }
 
 export async function executeGetAccount(input: GetAccountInput): Promise<GetAccountOutput> {
-  const { address: account, network } = input
+  const { network } = input
   const chainId = networkToChainIdMap[network]
 
+  // Resolve ENS name if provided (e.g. "vitalik.eth")
+  const { address: account } = await resolveEnsIfNeeded(input.address)
   validateAddress(account, chainId)
 
   const feeAssetId = getFeeAssetIdByChainId(chainId)

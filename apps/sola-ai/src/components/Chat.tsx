@@ -11,16 +11,10 @@ import type { WatchlistToken } from '../stores/watchlistStore'
 import { AssistantMessage } from './AssistantMessage'
 import { Composer } from './Composer'
 import { LoadingIndicator } from './LoadingIndicator'
+import { PromptMarquee } from './PromptMarquee'
 import { WatchlistStrip } from './WatchlistStrip'
-import { Button } from './ui/Button'
 import { UserMessage } from './UserMessage'
 import { cn } from '@/lib/utils'
-
-const WELCOME_SUGGESTIONS = [
-  'What is my USDC balance on Arbitrum?',
-  'Swap half my USDC on arb to ETH',
-  'Give me some info about LINK on Arb',
-]
 
 export function Chat() {
   const { messages, sendMessage, status, error } = useChatContext()
@@ -172,26 +166,16 @@ export function Chat() {
         {isEmpty && (
           <motion.div
             className="mx-auto w-full max-w-3xl font-serif"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl text-foreground">How can I help you today?</h2>
+            <h2 className="text-3xl text-foreground tracking-tight">How can I help you today?</h2>
           </motion.div>
         )}
         {isEmpty && (
-          <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3">
-            {WELCOME_SUGGESTIONS.map((suggestion, index) => (
-              <Button
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
-                title={suggestion}
-                variant="outline"
-                className="h-auto min-h-[52px] min-w-0 whitespace-normal px-3 py-2 text-left leading-snug line-clamp-2"
-              >
-                {suggestion}
-              </Button>
-            ))}
+          <div className="mx-auto w-full max-w-3xl">
+            <PromptMarquee onSelect={handleSuggestionClick} />
           </div>
         )}
         <WatchlistStrip onTokenClick={handleWatchlistClick} />

@@ -11,6 +11,7 @@ import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallet
 import { analytics } from '@/lib/mixpanel'
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 import { useChatStore, MAX_MESSAGES_PER_CONVERSATION } from '@/stores/chatStore'
+import { useContactStore } from '@/stores/contactStore'
 import { useOrderStore } from '@/stores/orderStore'
 import { useWatchlistStore } from '@/stores/watchlistStore'
 import { generateConversationId, extractTitleFromMessages } from '@/utils/conversationStorage'
@@ -84,6 +85,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
             safeAddresses.length > 0 ? useOrderStore.getState().getAllOrderSummaries(safeAddresses) : []
 
           const knownTransactions = useChatStore.getState().getKnownTransactions()
+          const contacts = useContactStore.getState().contacts
           const dynamicMultichainAddresses = collectDynamicMultichainAddresses(userWalletsRef.current)
 
           return {
@@ -94,6 +96,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
             safeDeploymentState: wallet.safeDeploymentState,
             registryOrders,
             knownTransactions: knownTransactions.length > 0 ? knownTransactions : undefined,
+            contacts: contacts.length > 0 ? contacts : undefined,
             ...(Object.keys(dynamicMultichainAddresses).length > 0 && {
               dynamicMultichainAddresses,
             }),
