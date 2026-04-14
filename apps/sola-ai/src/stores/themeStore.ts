@@ -27,13 +27,18 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     set => ({
-      mode: 'dark',
+      mode: 'light',
       theme: 'default',
-      setMode: (mode: ThemeMode) => set({ mode }),
+      setMode: (_mode: ThemeMode) => set({ mode: 'light' }),
       setTheme: (theme: string) => set({ theme }),
     }),
     {
       name: 'sola-ai-theme',
+      version: 2,
+      migrate: (persisted: unknown) => {
+        const state = (persisted as Partial<ThemeState>) ?? {}
+        return { ...state, mode: 'light' as ThemeMode }
+      },
     }
   )
 )

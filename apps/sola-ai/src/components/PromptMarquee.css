@@ -1,0 +1,30 @@
+@keyframes prompt-marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.prompt-marquee-track {
+  animation-name: prompt-marquee-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+  width: max-content;
+}
+
+.prompt-marquee-reverse {
+  animation-direction: reverse;
+}
+
+.prompt-marquee:hover .prompt-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt-marquee-track {
+    animation: none;
+  }
+}

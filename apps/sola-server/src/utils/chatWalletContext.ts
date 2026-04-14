@@ -10,7 +10,13 @@ import {
   solanaChainId,
 } from '@sola-ai/caip'
 
-import type { ActiveOrderSummary, KnownTransaction, SafeChainDeployment, WalletContext } from './walletContextSimple'
+import type {
+  ActiveOrderSummary,
+  ContactEntry,
+  KnownTransaction,
+  SafeChainDeployment,
+  WalletContext,
+} from './walletContextSimple'
 
 export const allEvmChainIds = [
   ethChainId,
@@ -33,7 +39,8 @@ export function buildWalletContextFromChatFields(
   safeDeploymentState?: Record<number, SafeChainDeployment>,
   registryOrders?: ActiveOrderSummary[],
   knownTransactions?: KnownTransaction[],
-  dynamicMultichainAddresses?: Record<string, string>
+  dynamicMultichainAddresses?: Record<string, string>,
+  contacts?: ContactEntry[]
 ): WalletContext {
   const connectedWallets: Record<string, { address: string }> = {}
 
@@ -71,5 +78,6 @@ export function buildWalletContextFromChatFields(
     safeDeploymentState,
     registryOrders,
     knownTransactions,
+    contacts,
   }
 }

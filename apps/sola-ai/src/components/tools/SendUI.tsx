@@ -6,6 +6,7 @@ import { Execution } from '@/components/Execution'
 import { useExecuteOnce } from '@/hooks/useExecuteOnce'
 import { useToolExecution } from '@/hooks/useToolExecution'
 import { toolStateToStepStatus } from '@/lib/executionState'
+import { getExplorerUrl } from '@/lib/explorers'
 import { analytics } from '@/lib/mixpanel'
 import { switchNetworkStep } from '@/lib/steps/switchNetworkStep'
 import { firstFourLastFour } from '@/lib/utils'
@@ -175,6 +176,18 @@ export function SendUI({ toolPart }: ToolUIComponentProps<'sendTool'>) {
             <Execution.Step index={SEND_STEPS.SEND} label="Sign and send transaction" connectorTop />
           </Execution.Stepper>
           <Execution.ErrorFooter />
+          {ctx.state.meta.txHash && networkName && (
+            <div className="px-4 pb-4">
+              <a
+                href={getExplorerUrl(networkName, ctx.state.meta.txHash as string)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 hover:underline"
+              >
+                View on explorer
+              </a>
+            </div>
+          )}
         </TxStepCard.Root>
       </Execution.HistoricalGuard>
     </Execution.Root>

@@ -22,6 +22,7 @@ import { createResumableStream, registerStream, clearStream } from '../lib/strea
 import { CHAIN_ID_TO_NETWORK, VAULT_EVM_CHAIN_IDS } from '../lib/vaultNetworks'
 import { getModel, getProviderName } from '../models'
 import { checkWalletCapabilitiesTool } from '../tools/checkWalletCapabilities'
+import { gasTrackerTool } from '../tools/gasTracker'
 import { lookupExternalAddressTool } from '../tools/getAccount'
 import { getAllowanceTool } from '../tools/getAllowance'
 import { getAssetPricesTool } from '../tools/getAssetPrices'
@@ -33,10 +34,24 @@ import { getSolaAIKnowledgeTool } from '../tools/getSolaAIKnowledge'
 import { getTopGainersLosersTool } from '../tools/getTopGainersLosers'
 import { getTrendingPoolsTool } from '../tools/getTrendingPools'
 import { getTrendingTokensTool } from '../tools/getTrendingTokens'
+import { getPolymarketPriceTool } from '../tools/getPolymarketPrice'
+import { approvePolymarketUsdcTool } from '../tools/polymarket/approvePolymarketUsdc'
+import { buildPolymarketApiKeyRequestTool } from '../tools/polymarket/buildPolymarketApiKeyRequest'
+import { buildPolymarketOrderTool } from '../tools/polymarket/buildPolymarketOrder'
+import { cancelPolymarketOrderTool } from '../tools/polymarket/cancelPolymarketOrder'
+import { createPolymarketApiKeyTool } from '../tools/polymarket/createPolymarketApiKey'
+import { getPolymarketOrdersTool } from '../tools/polymarket/getPolymarketOrders'
+import { getPolymarketPositionsTool } from '../tools/polymarket/getPolymarketPositions'
+import { submitPolymarketOrderTool } from '../tools/polymarket/submitPolymarketOrder'
+import { searchPolymarketMarketsTool } from '../tools/searchPolymarketMarkets'
 import { initiateSwapTool, initiateSwapUsdTool } from '../tools/initiateSwap'
+import { listContactsTool } from '../tools/listContacts'
 import { mathCalculator } from '../tools/mathCalculator'
 import { portfolioTool } from '../tools/portfolio'
+import { portfolioPnlTool } from '../tools/portfolioPnl'
 import { receiveTool } from '../tools/receive'
+import { revokeApprovalTool } from '../tools/revokeApproval'
+import { saveContactTool } from '../tools/saveContact'
 import { sendTool } from '../tools/send'
 import { switchNetworkTool } from '../tools/switchNetwork'
 import { transactionHistoryTool } from '../tools/transactionHistory'
@@ -95,20 +110,35 @@ function buildTools(walletContext: WalletContext) {
       getTrendingPoolsTool,
       getCategoriesTool,
       getNewCoinsTool,
+      gasTrackerTool,
+      saveContactTool,
+      searchPolymarketMarketsTool,
+      getPolymarketPriceTool,
+      submitPolymarketOrderTool,
+      createPolymarketApiKeyTool,
+      cancelPolymarketOrderTool,
+      getPolymarketOrdersTool,
     }),
     ...wrapTools(
       {
         checkWalletCapabilitiesTool,
         transactionHistoryTool,
         portfolioTool,
+        portfolioPnlTool,
         initiateSwapTool,
         initiateSwapUsdTool,
         sendTool,
         receiveTool,
+        revokeApprovalTool,
+        listContactsTool,
         vaultBalanceTool,
         vaultDepositTool,
         vaultWithdrawTool,
         vaultWithdrawAllTool,
+        approvePolymarketUsdcTool,
+        buildPolymarketOrderTool,
+        buildPolymarketApiKeyRequestTool,
+        getPolymarketPositionsTool,
       },
       walletContext
     ),
@@ -256,7 +286,7 @@ ${!isSafeReadyOnAnyChain(safeDeploymentState) ? '- No Safe deployed yet on vault
 - Show human-readable names only — never display CAIP-10/CAIP-19 identifiers.
 - Refer to capabilities in natural language ("check your vault balance"), not by internal tool names ("vaultBalanceTool").
 - Keep responses concise: 1-3 sentences for confirmations, short paragraphs for explanations.
-- Only share URLs explicitly returned by tool results. If no URL was returned, do not provide one.
+- NEVER construct or guess URLs (e.g. etherscan.io, solscan.io explorer links). Only share URLs explicitly returned by tool results. The UI will display explorer links automatically — do not include them in your response.
 - All tools automatically resolve wallet addresses from the connected wallet — specify networks and assets only, never addresses.
 - If a tool fails, explain what went wrong and suggest alternatives.
 - Insufficient balance errors: show the exact shortage amount.
@@ -280,14 +310,29 @@ Select the single tool matching the user's intent (these names are internal — 
 | Transaction history | transactionHistoryTool |
 | Swap or live quotes (token amount: "1 SOL", "quotes for 1 ETH to BTC", compare routes) | initiateSwapTool |
 | Swap (USD amount: "$100 worth", "50 dollars") | initiateSwapUsdTool |
-| Send tokens | sendTool |
+| Send tokens (supports ENS names like "vitalik.eth" and contact names) | sendTool |
 | Receive address / QR | receiveTool |
+| Revoke token approval | revokeApprovalTool |
+| Gas prices / fees across chains | gasTrackerTool |
+| Portfolio PnL / gains / losses / performance | portfolioPnlTool |
+| Save a contact (name + address) | saveContactTool |
+| List / search saved contacts | listContactsTool |
 | Vault deposit/withdraw/balance | vaultDepositTool, vaultWithdrawTool, vaultWithdrawAllTool, vaultBalanceTool |
 | Wallet / Safe status | checkWalletCapabilitiesTool |
 | Switch network | switchNetworkTool |
 | Arithmetic | mathCalculatorTool |
 | Sola AI platform info | getSolaAIKnowledgeTool |
 | Resolve ENS/address | lookupExternalAddress |
+| Polymarket prediction markets (search by keyword/slug/conditionId) | searchPolymarketMarketsTool |
+| Polymarket live price / orderbook for a Yes/No outcome token | getPolymarketPriceTool |
+| Approve USDC for Polymarket trading (one-time, required before first trade) | approvePolymarketUsdcTool |
+| Register / derive Polymarket CLOB API key (one-time, build typed data) | buildPolymarketApiKeyRequestTool |
+| Exchange signed auth for CLOB API credentials | createPolymarketApiKeyTool |
+| Place a Polymarket limit order (build unsigned typed data for client to sign) | buildPolymarketOrderTool |
+| Submit a signed Polymarket order to the CLOB | submitPolymarketOrderTool |
+| Cancel Polymarket order(s) — single, batch, or cancel-all | cancelPolymarketOrderTool |
+| List active Polymarket open orders for maker wallet | getPolymarketOrdersTool |
+| Polymarket positions with unrealized + realized P&L | getPolymarketPositionsTool |
 
 Swaps use Rango only — there are no limit, stop-loss, or TWAP order tools in this build.
 </tool-routing>
@@ -393,6 +438,15 @@ const chatRequestSchema = z.object({
     )
     .optional(),
   dynamicMultichainAddresses: z.record(z.string(), z.string()).optional(),
+  contacts: z
+    .array(
+      z.object({
+        name: z.string(),
+        address: z.string(),
+        network: z.string().optional(),
+      })
+    )
+    .optional(),
   registryOrders: z
     .array(
       z.object({
@@ -436,6 +490,7 @@ export async function handleChatRequest(c: Context) {
       safeAddress,
       safeDeploymentState,
       knownTransactions,
+      contacts,
       registryOrders,
       dynamicMultichainAddresses,
     } = parsed.data
@@ -449,7 +504,8 @@ export async function handleChatRequest(c: Context) {
       safeDeploymentState,
       registryOrders,
       knownTransactions,
-      dynamicMultichainAddresses
+      dynamicMultichainAddresses,
+      contacts
     )
 
     // Convert UIMessages to ModelMessages

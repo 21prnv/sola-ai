@@ -43,6 +43,11 @@ export interface VaultWithdrawMeta {
   networkName?: string
 }
 
+export interface PolymarketApproveMeta {
+  txHash?: string
+  networkName?: string
+}
+
 export interface ChainResult {
   network: string
   chainId: number
@@ -79,9 +84,24 @@ export type ToolMetaMap = {
   getNewCoinsTool: Record<string, never>
   getHistoricalPricesTool: Record<string, never>
   checkWalletCapabilitiesTool: Record<string, never>
+  gasTrackerTool: Record<string, never>
+  revokeApprovalTool: SendMeta
+  saveContactTool: Record<string, never>
+  listContactsTool: Record<string, never>
+  portfolioPnlTool: Record<string, never>
   vaultDepositTool: VaultDepositMeta
   vaultWithdrawTool: VaultWithdrawMeta
   vaultWithdrawAllTool: VaultWithdrawAllMeta
+  searchPolymarketMarketsTool: Record<string, never>
+  getPolymarketPriceTool: Record<string, never>
+  approvePolymarketUsdcTool: PolymarketApproveMeta
+  buildPolymarketApiKeyRequestTool: Record<string, never>
+  createPolymarketApiKeyTool: Record<string, never>
+  buildPolymarketOrderTool: Record<string, never>
+  submitPolymarketOrderTool: Record<string, never>
+  cancelPolymarketOrderTool: Record<string, never>
+  getPolymarketOrdersTool: Record<string, never>
+  getPolymarketPositionsTool: Record<string, never>
 }
 
 export type ToolExecutionStateFor<K extends ToolName> = Omit<ToolExecutionState, 'toolName' | 'meta'> & {

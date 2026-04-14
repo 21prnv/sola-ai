@@ -1,8 +1,8 @@
 import { Chat } from '@/components/Chat'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { ExportChat } from '@/components/ExportChat'
+import { PolymarketButton } from '@/components/Polymarket/PolymarketButton'
 import { SidebarLeft } from '@/components/SidebarLeft'
-import { ThemeSelector } from '@/components/ThemeSelector'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar'
 import { ChatProvider } from '@/providers/ChatProvider'
 
@@ -17,8 +17,8 @@ export const Dashboard = () => {
               <SidebarTrigger />
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <ThemeSelector />
               <ExportChat />
+              <PolymarketButton />
               <ConnectWallet />
             </div>
           </header>
