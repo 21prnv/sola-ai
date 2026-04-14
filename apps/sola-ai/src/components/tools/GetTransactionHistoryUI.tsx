@@ -8,11 +8,13 @@ import {
   CheckCircle2,
   FileCode,
   ScrollText,
+  Search,
   ShieldCheck,
   Vault,
   XCircle,
 } from 'lucide-react'
 import type React from 'react'
+import { useMemo, useState } from 'react'
 
 import { bnOrZero } from '@/lib/bignumber'
 import { getExplorerUrl } from '@/lib/explorers'
@@ -105,7 +107,20 @@ function TransactionCard({
                 {TRANSACTION_ICONS[tx.type]}
               </div>
               <div className="flex flex-col justify-center gap-0.5">
-                <TxSecondaryText>{label}</TxSecondaryText>
+                <div className="flex items-center gap-2">
+                  <TxSecondaryText>{label}</TxSecondaryText>
+                  {isSuccess ? (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-green-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-green-600 dark:text-green-400">
+                      <CheckCircle2 className="size-2.5" />
+                      Confirmed
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400">
+                      <XCircle className="size-2.5" />
+                      Failed
+                    </span>
+                  )}
+                </div>
                 {swapTokens && (
                   <TxStepCard.SwapPair
                     fromSymbol={swapTokens.tokenOut.symbol}
@@ -233,13 +248,24 @@ function TransactionCard({
   )
 }
 
+const TX_TYPE_FILTERS: Array<{ value: ParsedTransaction['type'] | 'all'; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'send', label: 'Send' },
+  { value: 'receive', label: 'Receive' },
+  { value: 'swap', label: 'Swap' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'approval', label: 'Approval' },
+]
+
 export function GetTransactionHistoryUI({ toolPart }: ToolUIComponentProps<'transactionHistoryTool'>) {
   const input = toolPart.input as Partial<Record<string, unknown>> | undefined
   const { output, state } = toolPart
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
 
   const stateRender = useToolStateRender(state, {
     loading: `Fetching transaction history...`,
-    error: `Failed to fetch transaction history ❌`,
+    error: `Failed to fetch transaction history`,
   })
 
   if (stateRender) return stateRender
@@ -256,13 +282,66 @@ export function GetTransactionHistoryUI({ toolPart }: ToolUIComponentProps<'tran
     }
 
     const renderTransactions = input?.renderTransactions
-
-    // Determine how many to render: specific number or all
     const renderCount = typeof renderTransactions === 'number' ? renderTransactions : transactions.length
+    const sliced = transactions.slice(0, renderCount)
+
+    // Filter by type
+    const typeFiltered = typeFilter === 'all' ? sliced : sliced.filter(tx => tx.type === typeFilter)
+
+    // Filter by search (txid, from, to, token symbols)
+    const query = searchQuery.toLowerCase().trim()
+    const filtered = query
+      ? typeFiltered.filter(tx => {
+          const fields = [
+            tx.txid,
+            tx.from,
+            tx.to,
+            tx.tokenTransfers?.map(t => t.symbol).join(' '),
+            TRANSACTION_LABELS[tx.type],
+          ]
+          return fields.some(f => f?.toLowerCase().includes(query))
+        })
+      : typeFiltered
 
     return (
       <div className="space-y-3">
-        {transactions.slice(0, renderCount).map(tx => {
+        {/* Search & filter bar */}
+        {sliced.length > 3 && (
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search by address, txid, token..."
+                className="w-full rounded-lg border border-border bg-muted/30 py-1.5 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-colors"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {TX_TYPE_FILTERS.map(f => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setTypeFilter(f.value)}
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                    typeFilter === f.value
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {filtered.length === 0 && (
+          <p className="py-4 text-center text-sm text-muted-foreground">No transactions match your filter</p>
+        )}
+
+        {filtered.map(tx => {
           const network = (tx.network ?? 'ethereum') as Network
           const chainId = networkToChainIdMap[network]
           const networkIcon = chainId ? NETWORK_ICONS[chainId] : undefined

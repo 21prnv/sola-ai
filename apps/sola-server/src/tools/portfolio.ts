@@ -76,14 +76,25 @@ async function getPortfolioDataSingle(
   const chainId = networkToChainIdMap[network]
   const account = getAddressForNetwork(walletContext, network)
 
+  console.log(`[Portfolio:fetch] ${network} → account=${account}, chainId=${chainId}`)
+
   const cacheKey = portfolioCache.getCacheKey(account, network)
   const cached = portfolioCache.get(cacheKey)
 
   if (cached) {
+    console.log(`[Portfolio:cache-hit] ${network}`)
     return cached
   }
 
-  const { balances } = await executeGetAccount({ address: account, network })
+  let balances: Record<string, string>
+  try {
+    const result = await executeGetAccount({ address: account, network })
+    balances = result.balances
+    console.log(`[Portfolio:balances] ${network} → ${Object.keys(balances).length} assets`)
+  } catch (err) {
+    console.error(`[Portfolio:fetch-error] ${network}`, err instanceof Error ? err.message : err)
+    throw err
+  }
 
   const assetIds = Object.keys(balances)
   const assets = await getAssetPrices(assetIds)
@@ -143,7 +154,10 @@ export async function executeGetPortfolio(
 ): Promise<PortfolioOutput> {
   const networks = input.networks || getConnectedNetworks(walletContext)
 
+  console.log('[Portfolio] networks:', networks, '| connectedWallets:', Object.keys(walletContext?.connectedWallets ?? {}))
+
   if (networks.length === 0) {
+    console.error('[Portfolio] No networks found. walletContext:', JSON.stringify(walletContext, null, 2))
     throw new Error('No networks specified and no connected wallets found')
   }
 

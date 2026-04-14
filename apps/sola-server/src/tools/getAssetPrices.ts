@@ -5,20 +5,35 @@ import { z } from 'zod'
 import { getAssetPrices as getAssetPricesLib } from '../lib/asset/prices'
 import type { AssetWithPrice } from '../lib/asset/prices'
 
+const assetEntrySchema = z.object({
+  assetId: z.string().optional().describe('CAIP-19 assetId (e.g., "eip155:1/erc20:0xa0b8...")'),
+  searchTerm: z.string().optional().describe('Search by symbol or name (e.g., "ETH", "USDC", "Bitcoin")'),
+  network: z.enum(NETWORKS).optional().describe('Network to search on (e.g., "ethereum", "arbitrum")'),
+})
+
 export const getAssetPricesSchema = z.object({
   assets: z
-    .array(
-      z.object({
-        assetId: z.string().optional().describe('CAIP-19 assetId (e.g., "eip155:1/erc20:0xa0b8...")'),
-        searchTerm: z.string().optional().describe('Search by symbol or name (e.g., "ETH", "USDC", "Bitcoin")'),
-        network: z.enum(NETWORKS).optional().describe('Network to search on (e.g., "ethereum", "arbitrum")'),
-      })
-    )
+    .array(assetEntrySchema)
     .min(1)
+    .optional()
     .describe('Array of assets to get prices for. Provide either assetId OR searchTerm (+ optional network)'),
+  // Flat fallback — models sometimes send { searchTerm: "ETH" } instead of { assets: [...] }
+  assetId: z.string().optional().describe('Single assetId lookup (fallback if assets array is omitted)'),
+  searchTerm: z.string().optional().describe('Single search term lookup (fallback if assets array is omitted)'),
+  network: z.enum(NETWORKS).optional().describe('Network for single lookup'),
 })
 
 export type GetAssetPricesInput = z.infer<typeof getAssetPricesSchema>
+
+type NormalizedEntry = z.infer<typeof assetEntrySchema>
+
+function normalizeInput(input: GetAssetPricesInput): NormalizedEntry[] {
+  if (input.assets && input.assets.length > 0) return input.assets
+  if (input.searchTerm || input.assetId) {
+    return [{ assetId: input.assetId, searchTerm: input.searchTerm, network: input.network }]
+  }
+  return []
+}
 
 export type GetAssetPricesOutput = {
   prices: Array<{
@@ -27,13 +42,20 @@ export type GetAssetPricesOutput = {
     name: string
     price: string
     priceChange24h?: number
+    icon?: string
   }>
 }
 
 export async function executeGetAssetPrices(input: GetAssetPricesInput): Promise<GetAssetPricesOutput> {
+  const entries = normalizeInput(input)
+
+  if (entries.length === 0) {
+    throw new Error('Provide at least one asset via the "assets" array or a flat "searchTerm"/"assetId"')
+  }
+
   const assetIds: string[] = []
 
-  for (const assetInput of input.assets) {
+  for (const assetInput of entries) {
     if (assetInput.assetId) {
       assetIds.push(assetInput.assetId)
     } else if (assetInput.searchTerm) {
@@ -60,6 +82,7 @@ export async function executeGetAssetPrices(input: GetAssetPricesInput): Promise
       name: asset.name,
       price: asset.price,
       priceChange24h: asset.priceChange24h,
+      icon: asset.icon,
     })),
   }
 }
@@ -72,7 +95,7 @@ Do NOT use for swap quotes, routes, aggregators, or questions like "how much wou
 Examples:
 - { assets: [{ searchTerm: "LINK", network: "ethereum" }] }
 - { assets: [{ searchTerm: "LINK" }, { searchTerm: "ZKP" }] }
-- { assets: [{ assetId: "eip155:1/erc20:0x..." }] }`,
+- { searchTerm: "ETH" }`,
   inputSchema: getAssetPricesSchema,
   execute: executeGetAssetPrices,
 }

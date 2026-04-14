@@ -39,14 +39,22 @@ export async function executeGetAccount(input: GetAccountInput): Promise<GetAcco
   const { chainNamespace } = fromChainId(chainId)
   const baseUrl = process.env[getUnchainedHttpUrlEnvVar(chainId)]
 
+  const url = `${baseUrl}/api/v1/account/${account}`
+  console.log(`[GetAccount] Fetching ${network} → ${url}`)
+
   let data: Account
   try {
-    const response = await axios.get<Account>(`${baseUrl}/api/v1/account/${account}`, {
-      timeout: 30000,
-    })
+    const response = await axios.get<Account>(url, { timeout: 30000 })
     data = response.data
+    console.log(`[GetAccount:ok] ${network} → balance=${data.balance}, tokens=${data.tokens?.length ?? 0}`)
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      console.error(`[GetAccount:error] ${network}`, {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url,
+        message: error.message,
+      })
       throw new Error(`Failed to fetch account data: ${error.response?.statusText || error.message}`)
     }
     throw error

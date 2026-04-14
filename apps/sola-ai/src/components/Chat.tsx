@@ -1,6 +1,7 @@
-import { AlertTriangle } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { useCallback, useMemo, useRef } from 'react'
+import { AlertTriangle, ArrowDown } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import type { VirtuosoHandle } from 'react-virtuoso'
 import { Virtuoso } from 'react-virtuoso'
 
 import { useStreamPauseDetector } from '../hooks/useStreamPauseDetector'
@@ -24,6 +25,8 @@ const WELCOME_SUGGESTIONS = [
 export function Chat() {
   const { messages, sendMessage, status, error } = useChatContext()
   const shouldAutoScrollRef = useRef(true)
+  const virtuosoRef = useRef<VirtuosoHandle>(null)
+  const [showScrollButton, setShowScrollButton] = useState(false)
 
   const lastMessageContent = useMemo(() => {
     const assistantMessages = messages.filter(m => m.role === 'assistant')
@@ -61,7 +64,7 @@ export function Chat() {
     const result: Array<{ type: 'message'; index: number } | { type: 'loading' } | { type: 'error' }> = messages.map(
       (_, index) => ({ type: 'message' as const, index })
     )
-    if (isPaused) result.push({ type: 'loading' as const })
+    if (isPaused || status === 'submitted') result.push({ type: 'loading' as const })
     if (error && status === 'error') result.push({ type: 'error' as const })
     return result
   }, [messages, isPaused, error, status])
@@ -115,6 +118,7 @@ export function Chat() {
           <div className="h-full" aria-hidden />
         ) : (
           <Virtuoso
+            ref={virtuosoRef}
             data={items}
             itemContent={itemContent}
             initialTopMostItemIndex={items.length - 1}
@@ -124,6 +128,7 @@ export function Chat() {
             }}
             atBottomStateChange={atBottom => {
               shouldAutoScrollRef.current = atBottom
+              setShowScrollButton(!atBottom)
             }}
             atBottomThreshold={100}
             style={{ height: '100%' }}
@@ -133,6 +138,27 @@ export function Chat() {
           />
         )}
       </div>
+
+      {/* Scroll to bottom button */}
+      <AnimatePresence>
+        {showScrollButton && !isEmpty && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ duration: 0.2 }}
+            type="button"
+            onClick={() => {
+              virtuosoRef.current?.scrollToIndex({ index: items.length - 1, behavior: 'smooth' })
+              shouldAutoScrollRef.current = true
+            }}
+            className="absolute bottom-44 left-1/2 z-20 -translate-x-1/2 flex items-center gap-1.5 rounded-full border border-border/80 bg-background/90 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowDown className="size-3.5" />
+            Scroll to bottom
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Composer dock: matches chat multi-modal-input — floats from ~25vh to bottom after first message */}
       <motion.div

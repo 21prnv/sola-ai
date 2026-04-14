@@ -69,12 +69,25 @@ const TxStepCardStep = ({
       case StepStatus.COMPLETE:
         return (
           <>
-            <div className="absolute inset-0 rounded-full border-2 border-whiteAlpha-200 bg-green-500" />
-            <Check className="w-3 h-3 text-white relative z-10" strokeWidth={3} />
+            <div className="absolute inset-0 rounded-full bg-green-500 checkmark-circle" />
+            <svg className="w-3 h-3 relative z-10" viewBox="0 0 12 12" fill="none">
+              <path
+                className="checkmark-path"
+                d="M2.5 6.5L5 9L9.5 3.5"
+                stroke="white"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </>
         )
       case StepStatus.IN_PROGRESS:
-        return <Circle className="w-5 h-5 text-purple-500" strokeWidth={2} fill="none" />
+        return (
+          <div className="step-glow-pulse rounded-full">
+            <Circle className="w-5 h-5 text-purple-500" strokeWidth={2} fill="none" />
+          </div>
+        )
       case StepStatus.FAILED:
         return (
           <>
@@ -136,11 +149,13 @@ const TxStepCardSwapPair = ({
   fromSymbol,
   toSymbol,
   isLoading,
+  isActive,
   className,
 }: {
   fromSymbol?: string
   toSymbol?: string
   isLoading?: boolean
+  isActive?: boolean
   className?: string
 }) => {
   if (isLoading) return <Skeleton className="h-7 w-40" />
@@ -149,8 +164,14 @@ const TxStepCardSwapPair = ({
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <span className="text-xl font-bold">{fromSymbol}</span>
-      <div className="w-6 h-6 shrink-0 rounded-full bg-muted flex items-center justify-center">
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      <div className={cn(
+        'w-6 h-6 shrink-0 rounded-full bg-muted flex items-center justify-center',
+        isActive && 'bg-primary/15'
+      )}>
+        <ChevronRight className={cn(
+          'w-4 h-4 text-muted-foreground',
+          isActive && 'swap-arrow-active text-primary'
+        )} />
       </div>
       <span className="text-xl font-bold">{toSymbol}</span>
     </div>

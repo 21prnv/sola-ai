@@ -6,7 +6,7 @@ export function PortfolioUI({ toolPart }: ToolUIComponentProps<'portfolioTool'>)
   const { state } = toolPart
 
   const portfolioDetailsText = (() => {
-    const parts = ['portfolio details']
+    const parts = ['portfolio']
     if (input?.network !== undefined) {
       const network = String(input.network as string)
       parts.push(`on ${network}`)
@@ -16,8 +16,8 @@ export function PortfolioUI({ toolPart }: ToolUIComponentProps<'portfolioTool'>)
 
   const stateRender = useToolStateRender(state, {
     loading: `Fetching ${portfolioDetailsText}`,
-    error: `Failed to fetch ${portfolioDetailsText} ❌`,
-    success: `Fetched ${portfolioDetailsText} ✅`,
+    error: `Failed to fetch ${portfolioDetailsText}`,
+    success: `Loaded ${portfolioDetailsText}`,
   })
 
   if (stateRender) return stateRender

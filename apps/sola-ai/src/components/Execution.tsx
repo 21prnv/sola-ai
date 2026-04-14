@@ -84,7 +84,7 @@ function Stepper({ children }: StepperProps) {
 // --- Step ---
 interface StepProps {
   index: number
-  label: string
+  label: ReactNode
   subtitle?: string
   connectorTop?: boolean
   connectorBottom?: boolean

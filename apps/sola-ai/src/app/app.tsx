@@ -13,6 +13,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { WagmiProvider } from 'wagmi'
 
+import { OnboardingTour } from '@/components/OnboardingTour'
 import { useWalletAnalytics } from '@/hooks/useWalletAnalytics'
 import { DYNAMIC_EVM_NETWORKS } from '@/lib/chains'
 import { useThemeStore } from '@/stores/themeStore'
@@ -86,6 +87,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <DynamicWagmiConnector>
             <AppContent />
+            <OnboardingTour />
             <Toaster
               theme={dynamicTheme}
               closeButton

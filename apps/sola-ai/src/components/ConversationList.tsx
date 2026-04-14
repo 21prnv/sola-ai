@@ -1,5 +1,5 @@
 import { PlusIcon, Trash2 } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { useChatStore } from '@/stores/chatStore'
@@ -26,11 +26,14 @@ import {
   SidebarMenuItem,
 } from './ui/Sidebar'
 
+const PAGE_SIZE = 20
+
 export function ConversationList() {
   const conversations = useChatStore(state => state.conversations)
   const storeDeleteConversation = useChatStore(state => state.deleteConversation)
   const { conversationId: activeConversationId } = useParams<{ conversationId?: string }>()
   const navigate = useNavigate()
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const deleteConversation = useCallback(
     (conversationId: string) => {
@@ -48,6 +51,13 @@ export function ConversationList() {
     return [...conversations].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
   }, [conversations])
 
+  const visibleConversations = sortedConversations.slice(0, visibleCount)
+  const hasMore = visibleCount < sortedConversations.length
+
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => Math.min(prev + PAGE_SIZE, sortedConversations.length))
+  }, [sortedConversations.length])
+
   return (
     <SidebarGroup>
       <div className="pb-2">
@@ -64,7 +74,7 @@ export function ConversationList() {
 
       <SidebarGroupContent>
         <SidebarMenu>
-          {sortedConversations.map(conv => {
+          {visibleConversations.map(conv => {
             const isActive = conv.id === activeConversationId
 
             return (
@@ -102,6 +112,18 @@ export function ConversationList() {
               </SidebarMenuItem>
             )
           })}
+
+          {hasMore && (
+            <div className="px-3 py-2">
+              <button
+                type="button"
+                onClick={loadMore}
+                className="w-full rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                Load more ({sortedConversations.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
 
           {sortedConversations.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">No conversations yet</div>
