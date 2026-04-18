@@ -59,8 +59,8 @@ jobs:
       - name: Deploy frontend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service frontend --ci
+        run: railway up --service e3b9bd7a-f441-4341-8894-af5d6c577768 --ci
       - name: Deploy server
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service server --ci
+        run: railway up --service c427c6e2-d0ba-48a3-98fb-5c7890b3cc76 --ci
