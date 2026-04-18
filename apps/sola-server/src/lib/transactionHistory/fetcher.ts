@@ -1,7 +1,7 @@
 import { CHAIN_NAMESPACE, fromChainId } from '@sola-ai/caip'
 import type { Network, ParsedTransaction } from '@sola-ai/types'
 import { EVM_SOLANA_NETWORKS, chainIdToNetwork, networkToChainIdMap } from '@sola-ai/types'
-import { getUnchainedHttpUrlEnvVar } from '@sola-ai/utils'
+import { getHttpUrlEnvVar } from '@sola-ai/utils'
 
 import type { WalletContext } from '../../utils/walletContextSimple'
 
@@ -71,9 +71,9 @@ async function fetchSingleNetworkHistory(
     throw new Error(`Transaction history not supported for network: ${network}`)
   }
 
-  const baseUrl = process.env[getUnchainedHttpUrlEnvVar(chainId)]
+  const baseUrl = process.env[getHttpUrlEnvVar(chainId)]
   if (!baseUrl) {
-    throw new Error(`Unchained URL not configured for ${network}`)
+    throw new Error(`HTTP URL not configured for ${network}`)
   }
 
   const allRawTxs: cache.RawTransaction[] = []

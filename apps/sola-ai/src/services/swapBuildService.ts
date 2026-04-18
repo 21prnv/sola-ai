@@ -28,6 +28,7 @@ export async function fetchSwapBuild(
     buyAsset: { symbolOrName: string; network?: string }
     sellAmount: string
     selectedSwapperId: string
+    slippagePercent?: number
   }
 ): Promise<InitiateSwapOutput> {
   const base = getSolaServerBaseUrl()
@@ -40,6 +41,7 @@ export async function fetchSwapBuild(
       buyAsset: params.buyAsset,
       sellAmount: params.sellAmount,
       selectedSwapperId: params.selectedSwapperId,
+      slippagePercent: params.slippagePercent,
     }),
   })
 

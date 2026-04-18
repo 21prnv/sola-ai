@@ -37,7 +37,7 @@ export function SearchPolymarketMarketsUI({ toolPart }: ToolUIComponentProps<'se
       <ToolCard.Content>
         <ToolCard.Details>
           <div className="divide-y divide-border">
-            {markets.map((m) => (
+            {markets.map(m => (
               <div key={m.id || m.slug} className="py-3 px-1">
                 <div className="flex items-start gap-3">
                   {m.image ? (
@@ -54,7 +54,7 @@ export function SearchPolymarketMarketsUI({ toolPart }: ToolUIComponentProps<'se
                     </div>
                     {m.outcomes.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {m.outcomes.map((o) => (
+                        {m.outcomes.map(o => (
                           <span
                             key={o.tokenId || o.label}
                             className="text-xs px-2 py-0.5 rounded bg-muted text-foreground/80"

@@ -3,7 +3,8 @@ import { getViemClient } from '@sola-ai/utils'
 import { erc20Abi, encodeFunctionData, getAddress, formatUnits } from 'viem'
 import { z } from 'zod'
 
-import { assetInputSchema, type TransactionData } from '../lib/schemas/swapSchemas'
+import { assetInputSchema } from '../lib/schemas/swapSchemas'
+import type { TransactionData } from '../lib/schemas/swapSchemas'
 import { resolveAsset } from '../utils/assetHelpers'
 import { isEvmChain } from '../utils/chains/helpers'
 import { createTransaction } from '../utils/transactionHelpers'
@@ -59,7 +60,9 @@ export async function executeRevokeApproval(
   })
 
   if (currentAllowance === 0n) {
-    throw new Error(`No active approval found for ${asset.symbol.toUpperCase()} to spender ${input.spender.slice(0, 6)}...${input.spender.slice(-4)}. Nothing to revoke.`)
+    throw new Error(
+      `No active approval found for ${asset.symbol.toUpperCase()} to spender ${input.spender.slice(0, 6)}...${input.spender.slice(-4)}. Nothing to revoke.`
+    )
   }
 
   // Build revoke tx (approve to 0)

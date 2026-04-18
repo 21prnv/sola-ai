@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/Button'
 import { useWalletConnection } from '@/hooks/useWalletConnection'
 import { bnOrZero } from '@/lib/bignumber'
 import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallets'
+import { getExplorerUrl } from '@/lib/explorers'
 import { StepStatus } from '@/lib/stepUtils'
 import { firstFourLastFour, cn } from '@/lib/utils'
-import { getExplorerUrl } from '@/lib/explorers'
 import { fetchSwapBuild } from '@/services/swapBuildService'
 import { useChatStore } from '@/stores/chatStore'
 import { useOrderStore } from '@/stores/orderStore'
@@ -123,14 +123,13 @@ function QuoteCountdown({
   const ratio = secondsLeft / total
 
   // Smooth gradient: green (>60%) → amber (30-60%) → red (<30%)
-  const barColor =
-    expired
-      ? 'rgb(239 68 68)'
-      : ratio > 0.6
-        ? `rgb(${Math.round(34 + (245 - 34) * (1 - ratio) * 2.5)}, ${Math.round(197 - 80 * (1 - ratio))}, ${Math.round(94 - 50 * (1 - ratio))})`
-        : ratio > 0.3
-          ? `rgb(245, ${Math.round(158 - (158 - 100) * (0.6 - ratio) / 0.3)}, 11)`
-          : `rgb(${Math.round(245 - (245 - 239) * (0.3 - ratio) / 0.3)}, ${Math.round(100 * ratio / 0.3)}, ${Math.round(68 * ratio / 0.3)})`
+  const barColor = expired
+    ? 'rgb(239 68 68)'
+    : ratio > 0.6
+      ? `rgb(${Math.round(34 + (245 - 34) * (1 - ratio) * 2.5)}, ${Math.round(197 - 80 * (1 - ratio))}, ${Math.round(94 - 50 * (1 - ratio))})`
+      : ratio > 0.3
+        ? `rgb(245, ${Math.round(158 - ((158 - 100) * (0.6 - ratio)) / 0.3)}, 11)`
+        : `rgb(${Math.round(245 - ((245 - 239) * (0.3 - ratio)) / 0.3)}, ${Math.round((100 * ratio) / 0.3)}, ${Math.round((68 * ratio) / 0.3)})`
 
   return (
     <div className="flex items-center gap-2">
@@ -299,7 +298,11 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
     return swapOutput
   }, [swapOutput, confirmedPreparation])
 
-  const { state, steps, networkName, approvalTxHash, swapTxHash, retry } = useSwapExecution(toolCallId, toolState, executionPayload)
+  const { state, steps, networkName, approvalTxHash, swapTxHash, retry } = useSwapExecution(
+    toolCallId,
+    toolState,
+    executionPayload
+  )
 
   // Trigger particle burst on terminal success
   const prevTerminalRef = useRef(false)
@@ -381,6 +384,7 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
           buyAsset: swapOutput.routeBuildContext.buyAssetInput,
           sellAmount: swapOutput.routeBuildContext.sellAmountCrypto,
           selectedSwapperId,
+          slippagePercent: swapOutput.routeBuildContext.slippagePercent,
         }
       )
       setConfirmedPreparation(built)
@@ -411,7 +415,11 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
   }
 
   const confirmBlocked =
-    !selectedSwapperId || isBuilding || !wallet.isConnected || quotesExpired || (selectedIsHighImpact && !highImpactAcknowledged)
+    !selectedSwapperId ||
+    isBuilding ||
+    !wallet.isConnected ||
+    quotesExpired ||
+    (selectedIsHighImpact && !highImpactAcknowledged)
 
   return (
     <Execution.Root state={state} toolCallId={toolCallId}>
@@ -538,13 +546,13 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                                     {routeCtx.sellAsset.symbol.slice(0, 1).toUpperCase()}
                                   </div>
                                 )}
-                                <div className="text-center">
-                                  <span className="text-lg font-semibold tabular-nums leading-none">
-                                    {routeCtx.sellAmountCrypto}
-                                  </span>
-                                  <span className="ml-1 text-sm font-medium text-muted-foreground">
-                                    {routeCtx.sellAsset.symbol.toUpperCase()}
-                                  </span>
+                                <div className="min-w-0 max-w-full text-center">
+                                  <div className="break-all text-sm font-semibold tabular-nums leading-tight sm:text-base">
+                                    <span>{routeCtx.sellAmountCrypto}</span>
+                                    <span className="ml-1 text-xs font-medium text-muted-foreground sm:text-sm">
+                                      {routeCtx.sellAsset.symbol.toUpperCase()}
+                                    </span>
+                                  </div>
                                   {sellUsd && (
                                     <div className="mt-0.5 text-xs text-muted-foreground">
                                       ~<Amount.Fiat value={sellUsd} />
@@ -585,8 +593,8 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                                     {routeCtx.buyAsset.symbol.slice(0, 1).toUpperCase()}
                                   </div>
                                 )}
-                                <div className="text-center">
-                                  <div className="text-lg font-semibold tabular-nums leading-none">
+                                <div className="min-w-0 max-w-full text-center">
+                                  <div className="break-all text-sm font-semibold tabular-nums leading-tight sm:text-base">
                                     <Amount.Crypto
                                       value={bnOrZero(opt.outputAmount)}
                                       symbol={routeCtx.buyAsset.symbol.toUpperCase()}
@@ -824,17 +832,9 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
           {/* Error footer with retry */}
           {state.error ? (
             <div className="px-4 pb-4 pt-2 space-y-2">
-              <p className="text-sm font-medium text-red-500 truncate">
-                Execution failed: {state.error}
-              </p>
+              <p className="text-sm font-medium text-red-500 truncate">Execution failed: {state.error}</p>
               {retry && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-1.5 text-xs"
-                  onClick={retry}
-                >
+                <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={retry}>
                   <RefreshCw className="size-3" />
                   Retry swap
                 </Button>

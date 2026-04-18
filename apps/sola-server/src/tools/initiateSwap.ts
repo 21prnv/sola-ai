@@ -293,11 +293,13 @@ async function executeSwapInternal({
   sellAssetInput,
   buyAssetInput,
   sellAmountCrypto,
+  slippagePercent,
   walletContext,
 }: {
   sellAssetInput: AssetInput
   buyAssetInput: AssetInput
   sellAmountCrypto: string
+  slippagePercent?: number
   walletContext?: WalletContext
 }): Promise<z.infer<typeof swapPreparationSchema>> {
   if (!Number.isFinite(parseFloat(sellAmountCrypto)) || parseFloat(sellAmountCrypto) <= 0) {
@@ -402,6 +404,7 @@ async function executeSwapInternal({
       sellAmountCrypto,
       sellAccount: sellAddress ?? '',
       buyAccount: buyAddress ?? '',
+      slippagePercent,
     },
   }
 }
@@ -413,6 +416,7 @@ export async function executeSwapRouteBuild(
     buyAsset: AssetInput
     sellAmountCrypto: string
     selectedSwapperId: string
+    slippagePercent?: number
   },
   walletContext?: WalletContext
 ): Promise<z.infer<typeof swapPreparationSchema>> {
@@ -430,6 +434,7 @@ export async function executeSwapRouteBuild(
   return finalizeSwapPreparationFromResolved(sellAsset, buyAsset, input.sellAmountCrypto, walletContext, {
     swappers: [sid],
     swappersExclude: false,
+    slippagePercent: input.slippagePercent,
   })
 }
 
@@ -437,6 +442,14 @@ export const initiateSwapSchema = z.object({
   sellAsset: assetInputSchema.describe('Asset to sell'),
   buyAsset: assetInputSchema.describe('Asset to buy'),
   sellAmount: z.string().describe('Amount to sell in crypto tokens, e.g. 1 for 1 ETH, 0.5 for 0.5 SOL'),
+  slippagePercent: z
+    .number()
+    .min(0.05)
+    .max(50)
+    .optional()
+    .describe(
+      'Optional max slippage as a percent (e.g. 0.5 for 0.5%). Only set when the user specifies it in the prompt ("with 1% slippage", "slippage 0.3%", "allow up to 5% slippage"). Omit otherwise to use the system default.'
+    ),
 })
 
 export type InitiateSwapInput = z.infer<typeof initiateSwapSchema>
@@ -450,6 +463,7 @@ export async function executeInitiateSwap(
     sellAssetInput: input.sellAsset,
     buyAssetInput: input.buyAsset,
     sellAmountCrypto: input.sellAmount,
+    slippagePercent: input.slippagePercent,
     walletContext,
   })
 }
@@ -463,6 +477,8 @@ Use whenever the user asks for quotes, routes, "best way" to swap, how much they
 
 The UI lists multiple Rango routes (fees, ETA, steps, provider) like an aggregator; the user picks one, then the app builds the transaction.
 
+SLIPPAGE: if the user specifies a slippage tolerance (e.g. "with 0.5% slippage", "slippage 1%", "allow 5% slippage"), pass it as \`slippagePercent\`. Otherwise omit it — the backend falls back to the system default.
+
 UI CARD DISPLAYS: route cards, sell/buy amounts, exchange rate, network fees, and price impact.`,
   inputSchema: initiateSwapSchema,
   execute: executeInitiateSwap,
@@ -472,6 +488,14 @@ export const initiateSwapUsdSchema = z.object({
   sellAsset: assetInputSchema.describe('Asset to sell'),
   buyAsset: assetInputSchema.describe('Asset to buy'),
   sellAmountUsd: z.string().describe('USD value to swap, e.g. "100" for $100 worth, "1.50" for $1.50 worth'),
+  slippagePercent: z
+    .number()
+    .min(0.05)
+    .max(50)
+    .optional()
+    .describe(
+      'Optional max slippage as a percent (e.g. 0.5 for 0.5%). Only set when the user specifies it in the prompt ("with 1% slippage", "slippage 0.3%"). Omit otherwise to use the system default.'
+    ),
 })
 
 export type InitiateSwapUsdInput = z.infer<typeof initiateSwapUsdSchema>
@@ -500,6 +524,7 @@ export async function executeInitiateSwapUsd(
     sellAssetInput,
     buyAssetInput,
     sellAmountCrypto,
+    slippagePercent: input.slippagePercent,
     walletContext,
   })
 }
@@ -510,6 +535,8 @@ export const initiateSwapUsdTool = {
 Quotes work without a connected wallet; executing the swap requires a wallet.
 
 Use for dollar-denominated swap/quote requests; the UI shows multiple Rango routes for the computed token amount.
+
+SLIPPAGE: if the user specifies a slippage tolerance (e.g. "with 0.5% slippage"), pass it as \`slippagePercent\`. Otherwise omit it — the backend falls back to the system default.
 
 UI CARD DISPLAYS: route cards, sell/buy amounts, exchange rate, network fees, and price impact.`,
   inputSchema: initiateSwapUsdSchema,

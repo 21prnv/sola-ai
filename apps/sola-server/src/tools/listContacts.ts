@@ -28,9 +28,7 @@ export async function executeListContacts(
   let filtered = allContacts
   if (input.search) {
     const query = input.search.toLowerCase()
-    filtered = allContacts.filter(
-      c => c.name.toLowerCase().includes(query) || c.address.toLowerCase().includes(query)
-    )
+    filtered = allContacts.filter(c => c.name.toLowerCase().includes(query) || c.address.toLowerCase().includes(query))
   }
 
   return {

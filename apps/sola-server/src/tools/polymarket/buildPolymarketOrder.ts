@@ -1,11 +1,7 @@
 import { getAddress } from 'viem'
 import { z } from 'zod'
 
-import {
-  getAddressForChain,
-  getSafeAddressForChain,
-  isSafeDeployedOnChain,
-} from '../../utils/walletContextSimple'
+import { getAddressForChain, getSafeAddressForChain, isSafeDeployedOnChain } from '../../utils/walletContextSimple'
 import type { WalletContext } from '../../utils/walletContextSimple'
 
 import {
@@ -24,7 +20,10 @@ export const buildPolymarketOrderSchema = z.object({
   tokenId: z.string().describe('CLOB outcome token id (from searchPolymarketMarkets → outcomes[i].tokenId)'),
   side: z.enum(['BUY', 'SELL']).describe('BUY to go long the outcome, SELL to close or short'),
   price: z.number().min(0.001).max(0.999).describe('Limit price per share in USDC (0.001–0.999, e.g. 0.62 = 62¢)'),
-  size: z.number().positive().describe('Number of shares to trade (contracts). 1 share pays $1 if outcome resolves Yes.'),
+  size: z
+    .number()
+    .positive()
+    .describe('Number of shares to trade (contracts). 1 share pays $1 if outcome resolves Yes.'),
   expirationSeconds: z
     .number()
     .int()
@@ -33,10 +32,7 @@ export const buildPolymarketOrderSchema = z.object({
     .describe('Seconds from now until the order expires. 0 = good-til-cancelled (default).'),
   feeRateBps: z.number().int().min(0).max(1000).optional().describe('Maker fee rate in bps (default: 0)'),
   negRisk: z.boolean().optional().describe('Use the Neg-Risk CTF Exchange (default: false)'),
-  useSafe: z
-    .boolean()
-    .optional()
-    .describe('Route maker through the Safe vault on Polygon (default: false, uses EOA)'),
+  useSafe: z.boolean().optional().describe('Route maker through the Safe vault on Polygon (default: false, uses EOA)'),
 })
 
 export type BuildPolymarketOrderInput = z.infer<typeof buildPolymarketOrderSchema>
@@ -89,11 +85,11 @@ function toBaseUnits6(value: number): bigint {
 }
 
 function randomSalt(): string {
-  const bytes = new Uint8Array(32)
+  const bytes = new Uint8Array(6)
   crypto.getRandomValues(bytes)
-  let hex = '0x'
-  for (const b of bytes) hex += b.toString(16).padStart(2, '0')
-  return BigInt(hex).toString()
+  let val = 0
+  for (const b of bytes) val = val * 256 + b
+  return val.toString()
 }
 
 export async function executeBuildPolymarketOrder(
@@ -151,9 +147,7 @@ export async function executeBuildPolymarketOrder(
     signatureType,
   }
 
-  const verifyingContract = negRisk
-    ? POLYMARKET_CONTRACTS.negRiskCtfExchange
-    : POLYMARKET_CONTRACTS.ctfExchange
+  const verifyingContract = negRisk ? POLYMARKET_CONTRACTS.negRiskCtfExchange : POLYMARKET_CONTRACTS.ctfExchange
 
   const domain = negRisk ? POLYMARKET_NEG_RISK_EIP712_DOMAIN : POLYMARKET_EIP712_DOMAIN
 

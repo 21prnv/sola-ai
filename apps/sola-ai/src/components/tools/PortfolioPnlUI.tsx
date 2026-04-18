@@ -24,9 +24,13 @@ function PnlValue({ value, percent }: { value: string; percent: string }) {
     <div className={`flex items-center gap-1.5 ${color}`}>
       <Icon className="w-4 h-4" />
       <span className="font-semibold">
-        {sign}{formatUsd(value)}
+        {sign}
+        {formatUsd(value)}
       </span>
-      <span className="text-xs opacity-80">({sign}{Math.abs(parseFloat(percent)).toFixed(2)}%)</span>
+      <span className="text-xs opacity-80">
+        ({sign}
+        {Math.abs(parseFloat(percent)).toFixed(2)}%)
+      </span>
     </div>
   )
 }
@@ -49,7 +53,8 @@ export function PortfolioPnlUI({ toolPart }: ToolUIComponentProps<'portfolioPnlT
 
   if (!pnlOutput) return null
 
-  const timeframeLabel = pnlOutput.timeframe === '24h' ? '24 Hours' : pnlOutput.timeframe === '7d' ? '7 Days' : '30 Days'
+  const timeframeLabel =
+    pnlOutput.timeframe === '24h' ? '24 Hours' : pnlOutput.timeframe === '7d' ? '7 Days' : '30 Days'
 
   return (
     <ToolCard.Root>
@@ -79,7 +84,9 @@ export function PortfolioPnlUI({ toolPart }: ToolUIComponentProps<'portfolioPnlT
                   <div className="text-right">
                     <div className="text-sm">{formatUsd(asset.currentValue)}</div>
                     <div className={`text-xs ${changeColor}`}>
-                      {sign}{formatUsd(asset.absoluteChange)} ({sign}{Math.abs(parseFloat(asset.percentChange)).toFixed(2)}%)
+                      {sign}
+                      {formatUsd(asset.absoluteChange)} ({sign}
+                      {Math.abs(parseFloat(asset.percentChange)).toFixed(2)}%)
                     </div>
                   </div>
                 </div>

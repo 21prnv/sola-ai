@@ -1,7 +1,7 @@
 import { ASSET_NAMESPACE, CHAIN_NAMESPACE, fromChainId, toAssetId } from '@sola-ai/caip'
 import type { Account } from '@sola-ai/types'
 import { NETWORKS, networkToChainIdMap } from '@sola-ai/types'
-import { getFeeAssetIdByChainId, getUnchainedHttpUrlEnvVar } from '@sola-ai/utils'
+import { getFeeAssetIdByChainId, getHttpUrlEnvVar } from '@sola-ai/utils'
 import axios from 'axios'
 import { z } from 'zod'
 
@@ -40,7 +40,7 @@ export async function executeGetAccount(input: GetAccountInput): Promise<GetAcco
   }
 
   const { chainNamespace } = fromChainId(chainId)
-  const baseUrl = process.env[getUnchainedHttpUrlEnvVar(chainId)]
+  const baseUrl = process.env[getHttpUrlEnvVar(chainId)]
 
   const url = `${baseUrl}/api/v1/account/${account}`
   console.log(`[GetAccount] Fetching ${network} → ${url}`)

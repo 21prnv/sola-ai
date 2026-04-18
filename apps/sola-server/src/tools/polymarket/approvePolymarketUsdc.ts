@@ -6,11 +6,7 @@ import { createTransaction } from '../../utils/transactionHelpers'
 import { getAddressForChain } from '../../utils/walletContextSimple'
 import type { WalletContext } from '../../utils/walletContextSimple'
 
-import {
-  POLYGON_CAIP_CHAIN_ID,
-  POLYMARKET_CONTRACTS,
-  USDC_DECIMALS,
-} from './constants'
+import { POLYGON_CAIP_CHAIN_ID, POLYMARKET_CONTRACTS, USDC_DECIMALS } from './constants'
 
 export const approvePolymarketUsdcSchema = z.object({
   amount: z
@@ -41,14 +37,10 @@ export async function executeApprovePolymarketUsdc(
   walletContext?: WalletContext
 ): Promise<ApprovePolymarketUsdcOutput> {
   const fromAddress = getAddressForChain(walletContext, POLYGON_CAIP_CHAIN_ID)
-  const spender = input.negRisk
-    ? POLYMARKET_CONTRACTS.negRiskCtfExchange
-    : POLYMARKET_CONTRACTS.ctfExchange
+  const spender = input.negRisk ? POLYMARKET_CONTRACTS.negRiskCtfExchange : POLYMARKET_CONTRACTS.ctfExchange
 
   const unlimited = !input.amount
-  const amountBaseUnits = unlimited
-    ? maxUint256
-    : BigInt(Math.floor(Number(input.amount) * 10 ** USDC_DECIMALS))
+  const amountBaseUnits = unlimited ? maxUint256 : BigInt(Math.floor(Number(input.amount) * 10 ** USDC_DECIMALS))
 
   const data = encodeFunctionData({
     abi: erc20Abi,

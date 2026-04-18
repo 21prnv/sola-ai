@@ -226,12 +226,7 @@ export {
   type RevokeApprovalInput,
   type RevokeApprovalOutput,
 } from './tools/revokeApproval'
-export {
-  saveContactTool,
-  executeSaveContact,
-  type SaveContactInput,
-  type SaveContactOutput,
-} from './tools/saveContact'
+export { saveContactTool, executeSaveContact, type SaveContactInput, type SaveContactOutput } from './tools/saveContact'
 export {
   listContactsTool,
   executeListContacts,

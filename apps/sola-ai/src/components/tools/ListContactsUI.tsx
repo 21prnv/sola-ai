@@ -55,9 +55,7 @@ export function ListContactsUI({ toolPart }: ToolUIComponentProps<'listContactsT
                 <div className="text-sm font-medium">{contact.name}</div>
                 <div className="text-xs text-muted-foreground font-mono break-all">{contact.address}</div>
               </div>
-              {contact.network && (
-                <div className="text-xs text-muted-foreground capitalize">{contact.network}</div>
-              )}
+              {contact.network && <div className="text-xs text-muted-foreground capitalize">{contact.network}</div>}
             </div>
           ))}
         </div>

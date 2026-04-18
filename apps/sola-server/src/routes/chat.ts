@@ -30,11 +30,14 @@ import { getAssetsTool } from '../tools/getAssets'
 import { getCategoriesTool } from '../tools/getCategories'
 import { getHistoricalPricesTool } from '../tools/getHistoricalPrices'
 import { getNewCoinsTool } from '../tools/getNewCoins'
+import { getPolymarketPriceTool } from '../tools/getPolymarketPrice'
 import { getSolaAIKnowledgeTool } from '../tools/getSolaAIKnowledge'
 import { getTopGainersLosersTool } from '../tools/getTopGainersLosers'
 import { getTrendingPoolsTool } from '../tools/getTrendingPools'
 import { getTrendingTokensTool } from '../tools/getTrendingTokens'
-import { getPolymarketPriceTool } from '../tools/getPolymarketPrice'
+import { initiateSwapTool, initiateSwapUsdTool } from '../tools/initiateSwap'
+import { listContactsTool } from '../tools/listContacts'
+import { mathCalculator } from '../tools/mathCalculator'
 import { approvePolymarketUsdcTool } from '../tools/polymarket/approvePolymarketUsdc'
 import { buildPolymarketApiKeyRequestTool } from '../tools/polymarket/buildPolymarketApiKeyRequest'
 import { buildPolymarketOrderTool } from '../tools/polymarket/buildPolymarketOrder'
@@ -43,15 +46,12 @@ import { createPolymarketApiKeyTool } from '../tools/polymarket/createPolymarket
 import { getPolymarketOrdersTool } from '../tools/polymarket/getPolymarketOrders'
 import { getPolymarketPositionsTool } from '../tools/polymarket/getPolymarketPositions'
 import { submitPolymarketOrderTool } from '../tools/polymarket/submitPolymarketOrder'
-import { searchPolymarketMarketsTool } from '../tools/searchPolymarketMarkets'
-import { initiateSwapTool, initiateSwapUsdTool } from '../tools/initiateSwap'
-import { listContactsTool } from '../tools/listContacts'
-import { mathCalculator } from '../tools/mathCalculator'
 import { portfolioTool } from '../tools/portfolio'
 import { portfolioPnlTool } from '../tools/portfolioPnl'
 import { receiveTool } from '../tools/receive'
 import { revokeApprovalTool } from '../tools/revokeApproval'
 import { saveContactTool } from '../tools/saveContact'
+import { searchPolymarketMarketsTool } from '../tools/searchPolymarketMarkets'
 import { sendTool } from '../tools/send'
 import { switchNetworkTool } from '../tools/switchNetwork'
 import { transactionHistoryTool } from '../tools/transactionHistory'
@@ -83,7 +83,10 @@ function wrapTool<TSchema, TExecute extends (args: never, walletContext?: Wallet
       const start = Date.now()
       try {
         const result = await tool.execute(args, walletContext)
-        console.log(`[Tool:ok] ${name} (${Date.now() - start}ms)`, typeof result === 'object' ? JSON.stringify(result).slice(0, 300) : result)
+        console.log(
+          `[Tool:ok] ${name} (${Date.now() - start}ms)`,
+          typeof result === 'object' ? JSON.stringify(result).slice(0, 300) : result
+        )
         return result
       } catch (err) {
         console.error(`[Tool:error] ${name} (${Date.now() - start}ms)`, {
@@ -127,8 +130,6 @@ function buildTools(walletContext: WalletContext) {
       getPolymarketPriceTool,
       submitPolymarketOrderTool,
       createPolymarketApiKeyTool,
-      cancelPolymarketOrderTool,
-      getPolymarketOrdersTool,
     }),
     ...wrapTools(
       {
@@ -150,6 +151,8 @@ function buildTools(walletContext: WalletContext) {
         buildPolymarketOrderTool,
         buildPolymarketApiKeyRequestTool,
         getPolymarketPositionsTool,
+        getPolymarketOrdersTool,
+        cancelPolymarketOrderTool,
       },
       walletContext
     ),
@@ -280,6 +283,8 @@ ${buildConnectedWalletsPrompt(evmAddress, solanaAddress, approvedChainIds, dynam
 You are Sola AI's crypto assistant. You help users with cryptocurrency prices, trading, swaps, portfolios, transaction history, blockchain concepts, and DeFi.
 
 When users ask about non-crypto topics, acknowledge their question briefly, then offer to help with cryptocurrency topics instead.
+
+When users ask who built you, who made you, who created you, or who your creator/author/developer is, respond exactly: "I was built by Prnv Patil. You can find him on X at https://x.com/21prnv". Do not attribute yourself to any other person or organization.
 </identity>
 
 <context>
@@ -345,7 +350,9 @@ Select the single tool matching the user's intent (these names are internal — 
 | List active Polymarket open orders for maker wallet | getPolymarketOrdersTool |
 | Polymarket positions with unrealized + realized P&L | getPolymarketPositionsTool |
 
-Swaps use Rango only — there are no limit, stop-loss, or TWAP order tools in this build.
+Swaps use Rango only. There are no limit, stop-loss, or TWAP order tools in this build.
+
+**Polymarket registration state:** CLOB credentials live client-side in localStorage. Do NOT infer registration status from positions or orders (empty positions just means no open trades). To check or establish registration, call **buildPolymarketApiKeyRequestTool**; its UI card reports "Already registered. Using saved credentials." when creds exist and skips the signature step. If the user asks "am I registered", route to buildPolymarketApiKeyRequestTool, not getPolymarketPositionsTool.
 </tool-routing>
 
 <tool-ui>
@@ -354,6 +361,8 @@ Many tools render UI cards (as noted in their descriptions). After a tool with a
 For tools without UI cards, format and present data directly in your response.
 
 **Transaction history:** Single call with all parameters. Set types when asking about a specific type.
+
+**Polymarket API key card:** The buildPolymarketApiKeyRequestTool UI card auto-detects existing credentials and displays either "Already registered" or prompts for a signature. Do NOT tell the user to "sign the typed data" in your response. Say something neutral like "Your Polymarket status is shown above" and let the card drive the action.
 </tool-ui>
 
 <portfolio-rules>
@@ -369,12 +378,21 @@ If unsure whether a number is USD or tokens for a swap, ask the user.
 </usd-conversion>
 
 <swap-rules>
-**Quotes vs spot prices:** If the user mentions swapping, exchanging, bridging, routes, quotes, "how much would I get", or two assets in one question ("1 ETH to BTC"), call **initiateSwapTool** (or initiateSwapUsdTool). Do **not** answer with only getAssetPricesTool — that skips the swap UI and omits Rango routes. **initiateSwapTool** returns live Rango quotes even when the user has not connected a wallet; do not refuse quotes for missing wallet.
+**Quotes vs spot prices:** If the user mentions swapping, exchanging, bridging, routes, quotes, "how much would I get", or two assets in one question ("1 ETH to BTC"), call **initiateSwapTool** OR **initiateSwapUsdTool** (exactly one, never both). Do **not** answer with only getAssetPricesTool, that skips the swap UI and omits Rango routes. initiateSwapTool returns live Rango quotes even when the user has not connected a wallet, do not refuse quotes for missing wallet.
+
+**CRITICAL: one swap tool call per turn.** Never call initiateSwapTool and initiateSwapUsdTool in the same response, and never call the same swap tool twice in parallel. Pick one tool based on the amount type (USD vs token) and make a single call. If the amount type is ambiguous, ask the user instead of guessing or trying both.
 
 **Distinguishing token amounts from USD amounts:**
 - Number + token symbol ("100 LINK", "0.5 ETH", "quote 1 ETH to BTC") = crypto amount → initiateSwapTool
 - Dollar sign, "dollars", "USD", "worth" ("$100 worth", "$1 of SOL") = USD amount → initiateSwapUsdTool
 - Bare number without symbol or dollar sign ("100 of ETH", "500 on WBTC") is ambiguous — ask the user whether they mean USD or token units.
+
+**Native coin aliases (NEVER resolve to look-alike tokens):**
+- "ETH" always means native Ether (on Ethereum, Arbitrum, Optimism, Base, or any L2 the user specifies). NEVER ETHM, ETHW, ETH2x-FLI, or any other token whose symbol contains "ETH". On Polygon, "ETH" means bridged/native ETH (WETH on Polygon if wrapped is needed), never ETHM.
+- "BTC" always means native Bitcoin or wrapped BTC (WBTC) on EVM chains when bridged. NEVER BTCB on BNB unless user says "BNB chain", NEVER random tokens like BTCX.
+- "SOL" always means native Solana. "MATIC"/"POL" means native Polygon. "BNB" means native BNB. "AVAX" means native Avalanche.
+- "USDC"/"USDT" always means the canonical stablecoin on the specified chain. On Polygon, prefer USDC.e (bridged, 0x2791Bca1...84174) for Polymarket; otherwise use native USDC.
+- If a ticker is ambiguous (e.g. user says "ETH on Polygon" and multiple ETH-named tokens exist), pick the canonical bridged/wrapped version. Do NOT pick a random low-liquidity token that happens to match the symbol.
 
 **Network resolution:**
 - Obvious native tickers imply their home chain (e.g. SOL→Solana, ETH often Ethereum unless user names an L2, BTC→Bitcoin, ATOM→Cosmos Hub, TRX→Tron, DOGE/LTC/BCH→their chains, SUI→Sui, etc.) — no need to ask when unambiguous.
@@ -533,7 +551,14 @@ export async function handleChatRequest(c: Context) {
 
     const model = getModel()
     const tools = buildTools(walletContext)
-    console.log('[Chat:stream] model:', (model as any).modelId ?? 'unknown', '| tools:', Object.keys(tools).length, '→', Object.keys(tools).join(', '))
+    console.log(
+      '[Chat:stream] model:',
+      (model as any).modelId ?? 'unknown',
+      '| tools:',
+      Object.keys(tools).length,
+      '→',
+      Object.keys(tools).join(', ')
+    )
 
     const result = streamText({
       model,

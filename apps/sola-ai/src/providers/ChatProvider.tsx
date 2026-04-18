@@ -1,6 +1,7 @@
 import { useChat } from '@ai-sdk/react'
 import { useUserWallets } from '@dynamic-labs/sdk-react-core'
-import { DefaultChatTransport, isToolOrDynamicToolUIPart, type UIMessage } from 'ai'
+import { DefaultChatTransport, isToolOrDynamicToolUIPart } from 'ai'
+import type { UIMessage } from 'ai'
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -267,7 +268,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const guardedSendMessage = useCallback(
     async (params: Parameters<typeof chat.sendMessage>[0]) => {
       if (chat.messages.length >= MAX_MESSAGES_PER_CONVERSATION) return
-      if (params && 'text' in params && typeof params.text === 'string' && tryHandleWatchlistCommand(params.text)) return
+      if (params && 'text' in params && typeof params.text === 'string' && tryHandleWatchlistCommand(params.text))
+        return
       await chat.sendMessage(params)
     },
     [chat, tryHandleWatchlistCommand]

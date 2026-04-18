@@ -1,7 +1,5 @@
 import { Check, CircleAlert, Loader2 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
-
 function StatusTextComponent({ children }: { children: React.ReactNode }) {
   return <div className="text-sm text-muted-foreground">{children}</div>
 }

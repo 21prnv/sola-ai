@@ -63,26 +63,26 @@ export const calculateUsdValue = (humanReadableAmount: string, price: string): s
   }
 }
 
-export const getUnchainedHttpUrlEnvVar = (chainId: ChainId): string => {
+export const getHttpUrlEnvVar = (chainId: ChainId): string => {
   switch (chainId) {
     case ethChainId:
-      return 'UNCHAINED_ETHEREUM_HTTP_URL'
+      return 'ETHEREUM_HTTP_URL'
     case avalancheChainId:
-      return 'UNCHAINED_AVALANCHE_HTTP_URL'
+      return 'AVALANCHE_HTTP_URL'
     case optimismChainId:
-      return 'UNCHAINED_OPTIMISM_HTTP_URL'
+      return 'OPTIMISM_HTTP_URL'
     case bscChainId:
-      return 'UNCHAINED_BNBSMARTCHAIN_HTTP_URL'
+      return 'BNBSMARTCHAIN_HTTP_URL'
     case polygonChainId:
-      return 'UNCHAINED_POLYGON_HTTP_URL'
+      return 'POLYGON_HTTP_URL'
     case gnosisChainId:
-      return 'UNCHAINED_GNOSIS_HTTP_URL'
+      return 'GNOSIS_HTTP_URL'
     case arbitrumChainId:
-      return 'UNCHAINED_ARBITRUM_HTTP_URL'
+      return 'ARBITRUM_HTTP_URL'
     case baseChainId:
-      return 'UNCHAINED_BASE_HTTP_URL'
+      return 'BASE_HTTP_URL'
     case solanaChainId:
-      return 'UNCHAINED_SOLANA_HTTP_URL'
+      return 'SOLANA_HTTP_URL'
     default:
       throw new Error(`invalid chainId: ${chainId}`)
   }

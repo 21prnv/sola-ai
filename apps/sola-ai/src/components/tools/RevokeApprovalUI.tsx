@@ -54,8 +54,6 @@ export function RevokeApprovalUI({ toolPart }: ToolUIComponentProps<'revokeAppro
 
   const prepareStepStatus = toolStateToStepStatus(toolState)
   const networkName = revokeData?.revokeData?.network
-  const hasError = toolState === 'output-error'
-  const isLoading = !revokeOutput && !hasError
   const summary = revokeOutput?.summary
 
   return (

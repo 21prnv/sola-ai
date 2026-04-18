@@ -57,13 +57,18 @@ type ClobOrderResponse = {
 export async function executeSubmitPolymarketOrder(
   input: SubmitPolymarketOrderInput
 ): Promise<SubmitPolymarketOrderOutput> {
+  const sideStr = input.order.side === 0 ? 'BUY' : 'SELL'
+
   const body = JSON.stringify({
     order: {
       ...input.order,
+      salt: Number.parseInt(input.order.salt, 10),
+      side: sideStr,
       signature: input.signature,
     },
     owner: input.creds.apiKey,
     orderType: input.orderType ?? 'GTC',
+    deferExec: false,
   })
 
   const headers = {

@@ -1,24 +1,35 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, MessageSquare, Repeat, Wallet, X } from 'lucide-react'
+import { ArrowRight, MessageSquare, Repeat, Sparkles, Wallet, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 const ONBOARDING_KEY = 'sola-ai-onboarding-complete'
 
 const STEPS = [
   {
+    icon: Sparkles,
+    title: 'Welcome to Sola',
+    description:
+      'Your AI copilot for multi-chain crypto. Chat your way through prices, portfolios, and on-chain actions.',
+    glow: 'rgba(168, 85, 247, 0.45)',
+  },
+  {
     icon: Wallet,
     title: 'Connect your wallet',
-    description: 'Link your EVM or Solana wallet to view balances, send tokens, and swap across chains.',
+    description:
+      'Link any EVM, Solana, Cosmos, Starknet, TON, or Tron wallet to view balances, send, and swap across chains.',
+    glow: 'rgba(59, 130, 246, 0.45)',
   },
   {
     icon: MessageSquare,
     title: 'Ask anything',
-    description: 'Type naturally — ask about prices, portfolio balances, transaction history, or market trends.',
+    description: 'Type naturally. Ask about prices, balances, transaction history, or market trends.',
+    glow: 'rgba(16, 185, 129, 0.45)',
   },
   {
     icon: Repeat,
-    title: 'Swap & send',
-    description: 'Say "swap 1 ETH to USDC" or "send 10 USDC to 0x..." and confirm in one click.',
+    title: 'Swap and send',
+    description: 'Say "swap 1 ETH to USDC" or "send 10 USDC to 0x..." and confirm in a single click.',
+    glow: 'rgba(245, 158, 11, 0.45)',
   },
 ]
 
@@ -51,6 +62,7 @@ export function OnboardingTour() {
   const step = STEPS[currentStep]!
   const Icon = step.icon
   const isLast = currentStep === STEPS.length - 1
+  const isFirst = currentStep === 0
 
   return (
     <AnimatePresence>
@@ -59,75 +71,112 @@ export function OnboardingTour() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-background p-6 shadow-2xl"
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_20px_80px_-20px_rgba(0,0,0,0.6)]"
           >
-            {/* Close button */}
+            <motion.div
+              key={`glow-${currentStep}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full blur-3xl"
+              style={{ background: step.glow }}
+            />
+
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+                backgroundSize: '16px 16px',
+              }}
+            />
+
             <button
               type="button"
               onClick={dismiss}
-              className="absolute right-3 top-3 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Close"
+              className="absolute right-3 top-3 z-10 rounded-full p-1.5 text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
             >
               <X className="size-4" />
             </button>
 
-            {/* Step content */}
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-                <Icon className="size-7 text-primary" />
-              </div>
-              <h3 className="mb-1.5 text-lg font-semibold">{step.title}</h3>
-              <p className="mb-6 text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+            <div className="relative px-7 pt-10 pb-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-6 flex items-center gap-1.5">
+                  {STEPS.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setCurrentStep(i)}
+                      aria-label={`Go to step ${i + 1}`}
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        i === currentStep
+                          ? 'w-8 bg-white'
+                          : i < currentStep
+                            ? 'w-4 bg-white/40 hover:bg-white/60'
+                            : 'w-4 bg-white/10 hover:bg-white/20'
+                      }`}
+                    />
+                  ))}
+                </div>
 
-              {/* Progress dots */}
-              <div className="mb-4 flex gap-1.5">
-                {STEPS.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentStep ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/25'
-                    }`}
-                  />
-                ))}
-              </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentStep}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div
+                      className="mb-5 flex size-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]"
+                      style={{ boxShadow: `0 0 40px -10px ${step.glow}` }}
+                    >
+                      <Icon className="size-6 text-white" strokeWidth={1.75} />
+                    </div>
 
-              {/* Actions */}
-              <div className="flex w-full gap-2">
-                {currentStep > 0 && (
+                    <h3 className="mb-2.5 text-[22px] font-semibold tracking-tight text-white">{step.title}</h3>
+                    <p className="mb-8 max-w-[300px] text-[13.5px] leading-relaxed text-zinc-400">{step.description}</p>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="flex w-full gap-2">
+                  {!isFirst && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(prev => prev - 1)}
+                      className="flex-1 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2.5 text-sm font-medium text-zinc-400 transition-all hover:border-white/20 hover:bg-white/[0.05] hover:text-zinc-200"
+                    >
+                      Back
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(prev => prev - 1)}
-                    className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    onClick={next}
+                    className="group flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-100 active:scale-[0.98]"
                   >
-                    Back
+                    {isLast ? 'Get started' : isFirst ? 'Take the tour' : 'Next'}
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </div>
+
+                {!isLast && (
+                  <button
+                    type="button"
+                    onClick={dismiss}
+                    className="mt-3 text-xs text-zinc-600 transition-colors hover:text-zinc-400"
+                  >
+                    Skip tour
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={next}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                >
-                  {isLast ? 'Get started' : 'Next'}
-                  {!isLast && <ArrowRight className="size-3.5" />}
-                </button>
               </div>
-
-              {/* Skip */}
-              {!isLast && (
-                <button
-                  type="button"
-                  onClick={dismiss}
-                  className="mt-3 text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
-                >
-                  Skip tour
-                </button>
-              )}
             </div>
           </motion.div>
         </motion.div>

@@ -130,7 +130,7 @@ export async function executeGasTracker(input: GasTrackerInput): Promise<GasTrac
 
     const { chainId, network, gasPrice, gasPriceGwei, baseFeeGwei, priorityFeeGwei } = result.value
     const feeAssetId = getFeeAssetIdByChainId(chainId)
-    const nativePrice = feeAssetId ? priceMap.get(feeAssetId) ?? 0 : 0
+    const nativePrice = feeAssetId ? (priceMap.get(feeAssetId) ?? 0) : 0
 
     // Estimated cost for a simple ETH transfer in USD
     const transferCostWei = gasPrice * ETH_TRANSFER_GAS

@@ -11,7 +11,7 @@ Multi-chain AI wallet. Users chat with an LLM that invokes "tools" to query stat
 - **AI SDK**: Vercel `ai` v5 with `streamText` + tools, models via `@ai-sdk/anthropic` / `@ai-sdk/openai`.
 - **Swaps**: Rango SDK (cross-chain).
 - **Price/market data**: CoinGecko Pro.
-- **Blockchain reads**: ShapeShift Unchained.
+- **Blockchain reads**: per-chain HTTP node APIs.
 
 ## Dev
 

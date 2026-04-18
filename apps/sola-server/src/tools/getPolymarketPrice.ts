@@ -34,8 +34,8 @@ type RawClobBook = {
 function parseLevels(raw: RawClobLevel[] | undefined, desc: boolean, depth: number): OrderbookLevel[] {
   if (!Array.isArray(raw)) return []
   const levels = raw
-    .map((l) => ({ price: Number(l.price), size: Number(l.size) }))
-    .filter((l) => Number.isFinite(l.price) && Number.isFinite(l.size) && l.size > 0)
+    .map(l => ({ price: Number(l.price), size: Number(l.size) }))
+    .filter(l => Number.isFinite(l.price) && Number.isFinite(l.size) && l.size > 0)
   levels.sort((a, b) => (desc ? b.price - a.price : a.price - b.price))
   return levels.slice(0, depth)
 }

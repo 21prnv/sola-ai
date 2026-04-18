@@ -1,12 +1,12 @@
 import { assetIdToCoingecko } from '@sola-ai/caip'
-import type { EvmSolanaNetwork } from '@sola-ai/types'
 import { EVM_SOLANA_NETWORKS } from '@sola-ai/types'
 import BigNumber from 'bignumber.js'
 import { z } from 'zod'
 
 import { getMarketChartRange } from '../lib/asset/coingecko/api'
-import { getConnectedNetworks, getPortfolioData } from './portfolio'
 import type { WalletContext } from '../utils/walletContextSimple'
+
+import { getConnectedNetworks, getPortfolioData } from './portfolio'
 
 const TIMEFRAME_SECONDS: Record<string, number> = {
   '24h': 86400,
@@ -17,10 +17,7 @@ const TIMEFRAME_SECONDS: Record<string, number> = {
 const MAX_ASSETS = 20
 
 export const portfolioPnlSchema = z.object({
-  timeframe: z
-    .enum(['24h', '7d', '30d'])
-    .default('24h')
-    .describe('Timeframe for PnL calculation: 24h, 7d, or 30d'),
+  timeframe: z.enum(['24h', '7d', '30d']).default('24h').describe('Timeframe for PnL calculation: 24h, 7d, or 30d'),
   networks: z
     .array(z.enum(EVM_SOLANA_NETWORKS))
     .optional()

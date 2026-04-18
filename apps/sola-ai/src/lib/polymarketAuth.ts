@@ -37,13 +37,9 @@ function bytesToBase64Url(bytes: ArrayBuffer): string {
 
 async function hmacSha256(secretB64Url: string, message: string): Promise<string> {
   const keyBytes = base64UrlToBytes(secretB64Url)
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyBytes as BufferSource,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
+  const key = await crypto.subtle.importKey('raw', keyBytes as BufferSource, { name: 'HMAC', hash: 'SHA-256' }, false, [
+    'sign',
+  ])
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message))
   return bytesToBase64Url(sig)
 }
@@ -182,8 +178,9 @@ export async function fetchOpenOrders(params: {
   })
   const res = await fetch(`${CLOB_BASE_URL}${path}`, { headers: { accept: 'application/json', ...headers } })
   if (!res.ok) throw new Error(`Failed to fetch orders: ${res.status}`)
-  const data = (await res.json()) as RawClobOrder[]
-  return (Array.isArray(data) ? data : []).map(normalizeOrder)
+  const parsed = (await res.json()) as RawClobOrder[] | { data: RawClobOrder[] }
+  const list = Array.isArray(parsed) ? parsed : Array.isArray(parsed.data) ? parsed.data : []
+  return list.map(normalizeOrder)
 }
 
 export async function cancelOrders(params: {
@@ -237,10 +234,19 @@ export async function submitSignedOrder(params: {
   signature: string
   orderType?: 'GTC' | 'FOK' | 'GTD'
 }): Promise<{ success: boolean; orderId?: string; status?: string; errorMessage?: string }> {
+  const sideValue = params.order.side
+  const sideStr = sideValue === 0 || sideValue === 'BUY' ? 'BUY' : 'SELL'
+
   const body = JSON.stringify({
-    order: { ...params.order, signature: params.signature },
+    order: {
+      ...params.order,
+      salt: Number.parseInt(String(params.order.salt), 10),
+      side: sideStr,
+      signature: params.signature,
+    },
     owner: params.creds.apiKey,
     orderType: params.orderType ?? 'GTC',
+    deferExec: false,
   })
 
   const headers = {
@@ -261,9 +267,11 @@ export async function submitSignedOrder(params: {
     orderID?: string
     status?: string
     errorMsg?: string
+    error?: string
   }
   if (!res.ok || data.success === false) {
-    return { success: false, errorMessage: data.errorMsg ?? `CLOB error: ${res.status}` }
+    const msg = data.errorMsg ?? data.error ?? `CLOB error: ${res.status}`
+    return { success: false, errorMessage: msg }
   }
   return { success: true, orderId: data.orderID, status: data.status }
 }
