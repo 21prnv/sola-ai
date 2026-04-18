@@ -154,7 +154,12 @@ export async function executeGetPortfolio(
 ): Promise<PortfolioOutput> {
   const networks = input.networks || getConnectedNetworks(walletContext)
 
-  console.log('[Portfolio] networks:', networks, '| connectedWallets:', Object.keys(walletContext?.connectedWallets ?? {}))
+  console.log(
+    '[Portfolio] networks:',
+    networks,
+    '| connectedWallets:',
+    Object.keys(walletContext?.connectedWallets ?? {})
+  )
 
   if (networks.length === 0) {
     console.error('[Portfolio] No networks found. walletContext:', JSON.stringify(walletContext, null, 2))

@@ -62,6 +62,7 @@ const swapBuildRequestSchema = z.object({
   buyAsset: assetInputSchema,
   sellAmount: z.string().min(1),
   selectedSwapperId: z.string().min(1),
+  slippagePercent: z.number().min(0.05).max(50).optional(),
 })
 
 export async function handleSwapBuildRequest(c: Context) {
@@ -85,6 +86,7 @@ export async function handleSwapBuildRequest(c: Context) {
       buyAsset,
       sellAmount,
       selectedSwapperId,
+      slippagePercent,
     } = parsed.data
 
     const walletContext = buildWalletContextFromChatFields(
@@ -104,6 +106,7 @@ export async function handleSwapBuildRequest(c: Context) {
         buyAsset,
         sellAmountCrypto: sellAmount,
         selectedSwapperId,
+        slippagePercent,
       },
       walletContext
     )

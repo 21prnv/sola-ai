@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, ChartLine, TriangleAlert, TrendingDown, TrendingUp } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -84,7 +84,10 @@ export function HistoricalPricesUI({ toolPart }: ToolUIComponentProps<'getHistor
           <ToolCard.Content>
             <ToolCard.Details>
               {errors.map((err, index) => (
-                <div key={`${err.assetId ?? err.searchTerm ?? 'unknown'}-${index}`} className="text-sm text-muted-foreground">
+                <div
+                  key={`${err.assetId ?? err.searchTerm ?? 'unknown'}-${index}`}
+                  className="text-sm text-muted-foreground"
+                >
                   {err.error}
                 </div>
               ))}
@@ -113,7 +116,10 @@ export function HistoricalPricesUI({ toolPart }: ToolUIComponentProps<'getHistor
           <ToolCard.Content>
             <ToolCard.Details>
               {errors.map((err, index) => (
-                <div key={`${err.assetId ?? err.searchTerm ?? 'unknown'}-${index}`} className="text-sm text-muted-foreground">
+                <div
+                  key={`${err.assetId ?? err.searchTerm ?? 'unknown'}-${index}`}
+                  className="text-sm text-muted-foreground"
+                >
                   {err.error}
                 </div>
               ))}
@@ -127,10 +133,7 @@ export function HistoricalPricesUI({ toolPart }: ToolUIComponentProps<'getHistor
 
 function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
   const [activeRange, setActiveRange] = useState<HistoricalRange['label']>('MAX')
-  const sortedData = useMemo(
-    () => [...asset.dataPoints].sort((a, b) => a.timestamp - b.timestamp),
-    [asset.dataPoints]
-  )
+  const sortedData = useMemo(() => [...asset.dataPoints].sort((a, b) => a.timestamp - b.timestamp), [asset.dataPoints])
 
   const latestTimestampMs = sortedData[sortedData.length - 1] ? sortedData[sortedData.length - 1]!.timestamp * 1000 : 0
 
@@ -187,7 +190,8 @@ function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
   const points = chartData.map((point, index) => {
     const x = leftPad + (index / Math.max(chartData.length - 1, 1)) * innerWidth
     const y =
-      topPad + ((chartMetrics.yMax - point.price) / Math.max(chartMetrics.yMax - chartMetrics.yMin, 0.000001)) * innerHeight
+      topPad +
+      ((chartMetrics.yMax - point.price) / Math.max(chartMetrics.yMax - chartMetrics.yMin, 0.000001)) * innerHeight
     return { x, y, raw: point }
   })
 
@@ -205,7 +209,9 @@ function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
   })
 
   const rangeStart = new Date((chartData[0]?.timestamp ?? asset.dataPoints[0]?.timestamp ?? 0) * 1000)
-  const rangeEnd = new Date((chartData[chartData.length - 1]?.timestamp ?? asset.dataPoints[asset.dataPoints.length - 1]?.timestamp ?? 0) * 1000)
+  const rangeEnd = new Date(
+    (chartData[chartData.length - 1]?.timestamp ?? asset.dataPoints[asset.dataPoints.length - 1]?.timestamp ?? 0) * 1000
+  )
 
   return (
     <ToolCard.Root
@@ -276,11 +282,7 @@ function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
                       className="text-white/15"
                       strokeDasharray="4 6"
                     />
-                    <text
-                      x={width - rightPad + 8}
-                      y={grid.y + 4}
-                      className="fill-muted-foreground text-[11px]"
-                    >
+                    <text x={width - rightPad + 8} y={grid.y + 4} className="fill-muted-foreground text-[11px]">
                       {formatPrice(grid.value)}
                     </text>
                   </g>

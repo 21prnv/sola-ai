@@ -8,10 +8,7 @@ import { POLYGON_CAIP_CHAIN_ID } from './constants'
 const DATA_API_BASE = 'https://data-api.polymarket.com'
 
 export const getPolymarketPositionsSchema = z.object({
-  address: z
-    .string()
-    .optional()
-    .describe('Wallet address to query. Defaults to the connected Polygon wallet.'),
+  address: z.string().optional().describe('Wallet address to query. Defaults to the connected Polygon wallet.'),
   sizeThreshold: z.number().optional().describe('Ignore positions smaller than this share count (default: 1)'),
   limit: z.number().int().min(1).max(100).optional().describe('Max positions to return (default: 50)'),
 })
@@ -92,7 +89,7 @@ export async function executeGetPolymarketPositions(
   }
   const raw = (await res.json()) as RawPosition[]
 
-  const positions: PolymarketPosition[] = (Array.isArray(raw) ? raw : []).map((p) => ({
+  const positions: PolymarketPosition[] = (Array.isArray(raw) ? raw : []).map(p => ({
     title: p.title ?? '',
     outcome: p.outcome ?? '',
     conditionId: p.conditionId ?? '',

@@ -16,8 +16,8 @@ import { WagmiProvider } from 'wagmi'
 import { OnboardingTour } from '@/components/OnboardingTour'
 import { useWalletAnalytics } from '@/hooks/useWalletAnalytics'
 import { DYNAMIC_EVM_NETWORKS } from '@/lib/chains'
-import { useThemeStore } from '@/stores/themeStore'
 import { wagmiConfig } from '@/lib/wagmi-config'
+import { useThemeStore } from '@/stores/themeStore'
 
 import { Dashboard } from './dashboard/page'
 

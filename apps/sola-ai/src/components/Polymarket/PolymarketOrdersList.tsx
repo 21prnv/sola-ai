@@ -86,7 +86,7 @@ export function PolymarketOrdersList({ address }: { address: string | undefined 
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {orders.map((o) => {
+            {orders.map(o => {
               const sideColor = o.side === 'BUY' ? 'text-green-600' : 'text-red-600'
               return (
                 <div key={o.id} className="px-4 py-3 flex items-center justify-between gap-3">

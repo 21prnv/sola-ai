@@ -2,7 +2,6 @@ import 'katex/dist/katex.min.css'
 
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useId } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
@@ -45,31 +44,7 @@ function CodeHeader({ language, code }: CodeHeaderProps) {
   )
 }
 
-function AnimatedParagraph({ children, className }: { children: ReactNode; className?: string }) {
-  const id = useId()
-  if (typeof children !== 'string') {
-    return <p className={cn('mb-5 mt-5 leading-7 first:mt-0 last:mb-0', className)}>{children}</p>
-  }
-  const words = children.split(/\s+/)
-  const segments = words.reduce<string[]>((acc, _, idx) => {
-    if (idx % 10 === 0) {
-      const segment = words.slice(idx, idx + 10).join(' ')
-      acc.push(idx + 10 >= words.length ? segment : segment + ' ')
-    }
-    return acc
-  }, [])
-  return (
-    <p className={cn('mb-5 mt-5 leading-7 first:mt-0 last:mb-0', className)}>
-      {segments.map((segment, idx) => (
-        <span key={`${id}-${idx}`} className="fade-segment" style={{ animationDelay: `${idx * 18}ms` }}>
-          {segment}
-        </span>
-      ))}
-    </p>
-  )
-}
-
-export function Markdown({ children, animated = false }: MarkdownProps) {
+export function Markdown({ children, animated: _animated = false }: MarkdownProps) {
   return (
     <div className="text-base">
       <ReactMarkdown
@@ -115,12 +90,9 @@ export function Markdown({ children, animated = false }: MarkdownProps) {
           h6: ({ className, ...props }) => (
             <h6 className={cn('my-4 font-semibold first:mt-0 last:mb-0', className)} {...props} />
           ),
-          p: ({ className, children }) =>
-            animated ? (
-              <AnimatedParagraph className={className}>{children}</AnimatedParagraph>
-            ) : (
-              <p className={cn('mb-5 mt-5 leading-7 first:mt-0 last:mb-0', className)}>{children}</p>
-            ),
+          p: ({ className, children }) => (
+            <p className={cn('mb-5 mt-5 leading-7 first:mt-0 last:mb-0', className)}>{children}</p>
+          ),
           a: ({ className, ...props }) => (
             <a
               className={cn('text-primary font-medium underline underline-offset-4', className)}

@@ -5,9 +5,9 @@ import { sendSchema } from '../lib/schemas/sendSchemas'
 import type { TransactionData } from '../lib/schemas/swapSchemas'
 import { validateAddress } from '../utils/addressValidation'
 import { isNativeToken, resolveAsset } from '../utils/assetHelpers'
-import { resolveEnsIfNeeded } from '../utils/ensResolution'
 import { getBalance, validateSufficientBalance } from '../utils/balanceHelpers'
 import { isEvmChain, isRangoWalletEnvelopeChain, isSolanaChain } from '../utils/chains/helpers'
+import { resolveEnsIfNeeded } from '../utils/ensResolution'
 import { calculateMaxSendAmount, formatEstimatedFee } from '../utils/feeEstimation'
 import { getRangoSend } from '../utils/getRangoSwap/getRangoSwap'
 import { networkToFeeSymbol } from '../utils/networkHelpers'
@@ -60,7 +60,9 @@ export async function executeSend(input: SendInput, walletContext?: WalletContex
   const txResult = await buildSendTransaction(asset, from, resolvedRecipient, sendAmount)
 
   // 6. Create summary (show ENS name in display if resolved)
-  const displayTo = ensName ? `${ensName} (${resolvedRecipient.slice(0, 6)}...${resolvedRecipient.slice(-4)})` : undefined
+  const displayTo = ensName
+    ? `${ensName} (${resolvedRecipient.slice(0, 6)}...${resolvedRecipient.slice(-4)})`
+    : undefined
   const summary = createSendSummary(asset, from, resolvedRecipient, sendAmount, txResult, displayTo)
 
   return {

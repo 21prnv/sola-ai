@@ -54,6 +54,7 @@ export const swapRouteBuildContextSchema = z.object({
   sellAmountCrypto: z.string(),
   sellAccount: z.string(),
   buyAccount: z.string(),
+  slippagePercent: z.number().optional(),
 })
 
 // Summary schema for user-facing swap information

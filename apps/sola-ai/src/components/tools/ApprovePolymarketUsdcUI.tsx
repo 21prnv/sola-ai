@@ -32,7 +32,7 @@ export function ApprovePolymarketUsdcUI({ toolPart }: ToolUIComponentProps<'appr
           throw new Error('Wallet disconnected. Please reconnect and try again.')
         }
 
-        ctx.setState((draft) => {
+        ctx.setState(draft => {
           draft.toolOutput = data
           draft.meta.networkName = data.summary.network
         })
@@ -93,7 +93,10 @@ export function ApprovePolymarketUsdcUI({ toolPart }: ToolUIComponentProps<'appr
           {summary && (
             <TxStepCard.Content>
               <TxStepCard.Details>
-                <TxStepCard.DetailItem label="Amount" value={summary.unlimited ? 'Unlimited' : `${summary.amount} USDC`} />
+                <TxStepCard.DetailItem
+                  label="Amount"
+                  value={summary.unlimited ? 'Unlimited' : `${summary.amount} USDC`}
+                />
                 <TxStepCard.DetailItem label="Spender" value={firstFourLastFour(summary.spender)} />
                 <TxStepCard.DetailItem label="From" value={firstFourLastFour(summary.fromAddress)} />
                 <TxStepCard.DetailItem label="Network" value={summary.network} />
@@ -102,7 +105,12 @@ export function ApprovePolymarketUsdcUI({ toolPart }: ToolUIComponentProps<'appr
           )}
 
           <Execution.Stepper>
-            <Execution.Step index={STEPS.PREPARE} label="Preparing approval" overrideStatus={prepareStepStatus} connectorBottom />
+            <Execution.Step
+              index={STEPS.PREPARE}
+              label="Preparing approval"
+              overrideStatus={prepareStepStatus}
+              connectorBottom
+            />
             <Execution.Step index={STEPS.NETWORK} label="Switch to Polygon" connectorTop connectorBottom />
             <Execution.Step index={STEPS.APPROVE} label="Approve USDC" connectorTop />
           </Execution.Stepper>

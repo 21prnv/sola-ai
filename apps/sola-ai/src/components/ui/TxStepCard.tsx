@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Circle, List, X } from 'lucide-react'
+import { ChevronRight, Circle, List, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { formatCryptoAmount } from '@/lib/number'
@@ -54,7 +54,7 @@ const TxStepCardStep = ({
       case StepStatus.COMPLETE:
         return 'text-green-500'
       case StepStatus.IN_PROGRESS:
-        return 'text-white'
+        return 'text-foreground'
       case StepStatus.FAILED:
         return 'text-destructive'
       case StepStatus.NOT_STARTED:
@@ -98,13 +98,13 @@ const TxStepCardStep = ({
       case StepStatus.SKIPPED:
         return (
           <>
-            <Circle className="w-5 h-5 text-whiteAlpha-200" strokeWidth={2} fill="none" />
-            <div className="absolute w-2 h-0.5 bg-whiteAlpha-500" />
+            <Circle className="w-5 h-5 text-muted-foreground/40" strokeWidth={2} fill="none" />
+            <div className="absolute w-2 h-0.5 bg-muted-foreground/60" />
           </>
         )
       case StepStatus.NOT_STARTED:
       default:
-        return <Circle className="w-5 h-5 text-whiteAlpha-200" strokeWidth={2} fill="none" />
+        return <Circle className="w-5 h-5 text-muted-foreground/40" strokeWidth={2} fill="none" />
     }
   })()
 
@@ -115,7 +115,7 @@ const TxStepCardStep = ({
       className={cn(
         'relative -mx-2 flex items-center rounded-md px-2 transition-colors duration-300',
         hasActiveSubtitle ? 'min-h-10 py-1.5' : 'h-10',
-        status === StepStatus.IN_PROGRESS && 'bg-whiteAlpha-200/90 shadow-[0_0_0_1px_var(--color-whiteAlpha-200)]'
+        status === StepStatus.IN_PROGRESS && 'bg-muted shadow-[0_0_0_1px_var(--color-border)]'
       )}
     >
       <div className={cn('flex items-center gap-2', getStatusStyles(), className)}>
@@ -123,14 +123,14 @@ const TxStepCardStep = ({
           <div className="flex flex-col items-center">
             <div
               className={cn(
-                'h-2.5 w-0.5 bg-whiteAlpha-200',
+                'h-2.5 w-0.5 bg-border',
                 (!connectorTop || status === StepStatus.IN_PROGRESS) && 'opacity-0'
               )}
             />
             <div className="h-5 w-5 relative flex items-center justify-center">{iconContent}</div>
             <div
               className={cn(
-                'h-2.5 w-0.5 bg-whiteAlpha-200',
+                'h-2.5 w-0.5 bg-border',
                 (!connectorBottom || status === StepStatus.IN_PROGRESS) && 'opacity-0'
               )}
             />
@@ -164,14 +164,13 @@ const TxStepCardSwapPair = ({
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <span className="text-xl font-bold">{fromSymbol}</span>
-      <div className={cn(
-        'w-6 h-6 shrink-0 rounded-full bg-muted flex items-center justify-center',
-        isActive && 'bg-primary/15'
-      )}>
-        <ChevronRight className={cn(
-          'w-4 h-4 text-muted-foreground',
-          isActive && 'swap-arrow-active text-primary'
-        )} />
+      <div
+        className={cn(
+          'w-6 h-6 shrink-0 rounded-full bg-muted flex items-center justify-center',
+          isActive && 'bg-primary/15'
+        )}
+      >
+        <ChevronRight className={cn('w-4 h-4 text-muted-foreground', isActive && 'swap-arrow-active text-primary')} />
       </div>
       <span className="text-xl font-bold">{toSymbol}</span>
     </div>

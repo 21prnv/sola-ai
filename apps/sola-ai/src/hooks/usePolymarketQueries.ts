@@ -59,7 +59,7 @@ async function fetchPositions(address: string): Promise<PolymarketPosition[]> {
   if (!res.ok) throw new Error(`Positions error: ${res.status}`)
   const raw = (await res.json()) as RawPosition[]
 
-  return (Array.isArray(raw) ? raw : []).map((p) => ({
+  return (Array.isArray(raw) ? raw : []).map(p => ({
     title: p.title ?? '',
     outcome: p.outcome ?? '',
     conditionId: p.conditionId ?? '',

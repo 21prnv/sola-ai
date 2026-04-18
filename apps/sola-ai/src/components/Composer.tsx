@@ -62,7 +62,7 @@ export function Composer() {
           value={input}
           onChange={handleInputChange}
           onKeyDown={onKeyDown}
-          placeholder="Ask me anything..."
+          placeholder="Ask me anything about crypto"
           rows={1}
           className="text-foreground min-h-[64px] w-full resize-none border-none bg-transparent px-6 py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}

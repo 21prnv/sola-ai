@@ -46,7 +46,6 @@ const publisher = createInMemoryPublisher()
 const subscriber = createInMemorySubscriber()
 
 // Patch: wire publisher.publish to subscriber channels
-const originalPublish = publisher.publish
 publisher.publish = async (channel: string, message: string) => {
   const listeners = sharedChannels.get(channel)
   if (listeners) {
@@ -82,10 +81,7 @@ export function getStreamIdForConversation(conversationId: string): string | und
   return conversationStreamMap.get(conversationId)
 }
 
-export async function createResumableStream(
-  streamId: string,
-  stream: ReadableStream
-): Promise<ReadableStream> {
+export async function createResumableStream(streamId: string, stream: ReadableStream): Promise<ReadableStream> {
   try {
     const resumable = await getStreamContext().createNewResumableStream(
       streamId,

@@ -17,6 +17,27 @@ export type ToolRendererProps = {
   toolPart: DynamicToolUIPart
 }
 
+const EXECUTED_KEY = 'polymarket_executed_tools'
+
+export function markToolExecuted(toolCallId: string): void {
+  try {
+    const set = JSON.parse(sessionStorage.getItem(EXECUTED_KEY) ?? '[]') as string[]
+    if (!set.includes(toolCallId)) set.push(toolCallId)
+    sessionStorage.setItem(EXECUTED_KEY, JSON.stringify(set))
+  } catch {
+    /* ignore */
+  }
+}
+
+export function wasToolExecuted(toolCallId: string): boolean {
+  try {
+    const set = JSON.parse(sessionStorage.getItem(EXECUTED_KEY) ?? '[]') as string[]
+    return set.includes(toolCallId)
+  } catch {
+    return false
+  }
+}
+
 export function useToolStateRender(
   state: DynamicToolUIPart['state'],
   messages: {

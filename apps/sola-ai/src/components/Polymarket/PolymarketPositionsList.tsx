@@ -68,7 +68,7 @@ export function PolymarketPositionsList({ address }: { address: string | undefin
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {positions.map((p) => (
+            {positions.map(p => (
               <div key={p.tokenId || p.conditionId} className="px-4 py-3 flex gap-3 items-start">
                 {p.icon ? (
                   <img src={p.icon} alt="" className="w-9 h-9 rounded shrink-0 object-cover" />

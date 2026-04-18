@@ -31,7 +31,6 @@ export function GetPolymarketOrdersUI({ toolPart }: ToolUIComponentProps<'getPol
     if (toolState !== 'output-available' || !output) return
     startedRef.current = true
     void run(output)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolState, output])
 
   async function run(data: GetPolymarketOrdersOutput) {
@@ -63,7 +62,7 @@ export function GetPolymarketOrdersUI({ toolPart }: ToolUIComponentProps<'getPol
     setCancellingId(orderId)
     try {
       await cancelOrders({ creds, address: output.owner, orderId })
-      setOrders((prev) => prev.filter((o) => o.id !== orderId))
+      setOrders(prev => prev.filter(o => o.id !== orderId))
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : String(err))
     } finally {
@@ -88,16 +87,14 @@ export function GetPolymarketOrdersUI({ toolPart }: ToolUIComponentProps<'getPol
       <ToolCard.Content>
         <ToolCard.Details>
           {status === 'loading' && <div className="text-sm text-muted-foreground">Loading…</div>}
-          {status === 'no-creds' && (
-            <div className="text-sm text-amber-600">{errorMessage}</div>
-          )}
+          {status === 'no-creds' && <div className="text-sm text-amber-600">{errorMessage}</div>}
           {status === 'error' && <div className="text-sm text-red-600">{errorMessage}</div>}
           {status === 'ready' && orders.length === 0 && (
             <div className="text-sm text-muted-foreground">No open orders.</div>
           )}
           {status === 'ready' && orders.length > 0 && (
             <div className="divide-y divide-border">
-              {orders.map((o) => {
+              {orders.map(o => {
                 const sideColor = o.side === 'BUY' ? 'text-green-600' : 'text-red-600'
                 return (
                   <div key={o.id} className="py-2 flex items-center justify-between gap-2 text-xs">

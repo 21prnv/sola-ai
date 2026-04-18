@@ -1,8 +1,10 @@
-import { AlertTriangle, ArrowDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { AlertTriangle, ArrowDown } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { VirtuosoHandle } from 'react-virtuoso'
 import { Virtuoso } from 'react-virtuoso'
+
+import { cn } from '@/lib/utils'
 
 import { useStreamPauseDetector } from '../hooks/useStreamPauseDetector'
 import { useChatContext } from '../providers/ChatProvider'
@@ -12,9 +14,8 @@ import { AssistantMessage } from './AssistantMessage'
 import { Composer } from './Composer'
 import { LoadingIndicator } from './LoadingIndicator'
 import { PromptMarquee } from './PromptMarquee'
-import { WatchlistStrip } from './WatchlistStrip'
 import { UserMessage } from './UserMessage'
-import { cn } from '@/lib/utils'
+import { WatchlistStrip } from './WatchlistStrip'
 
 export function Chat() {
   const { messages, sendMessage, status, error } = useChatContext()

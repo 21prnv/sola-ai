@@ -3,13 +3,13 @@ import { CheckCircle2, Key } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useWalletConnection } from '@/hooks/useWalletConnection'
+import { loadPolymarketCreds, postClobCreateApiKey, savePolymarketCreds } from '@/lib/polymarketAuth'
 import { signTypedDataWithWallet } from '@/lib/stepUtils'
 import { firstFourLastFour } from '@/lib/utils'
-import { loadPolymarketCreds, postClobCreateApiKey, savePolymarketCreds } from '@/lib/polymarketAuth'
 
 import { ToolCard } from '../ui/ToolCard'
 
-import { useToolStateRender } from './toolUIHelpers'
+import { useToolStateRender, markToolExecuted, wasToolExecuted } from './toolUIHelpers'
 import type { ToolUIComponentProps } from './toolUIHelpers'
 
 type Status = 'idle' | 'checking' | 'signing' | 'submitting' | 'success' | 'already-registered' | 'error'
@@ -30,7 +30,9 @@ export function BuildPolymarketApiKeyRequestUI({ toolPart }: ToolUIComponentProp
   useEffect(() => {
     if (startedRef.current) return
     if (toolState !== 'output-available' || !output || !evmWallet) return
+    if (wasToolExecuted(toolPart.toolCallId)) return
     startedRef.current = true
+    markToolExecuted(toolPart.toolCallId)
     void run(output)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolState, output, evmWallet])

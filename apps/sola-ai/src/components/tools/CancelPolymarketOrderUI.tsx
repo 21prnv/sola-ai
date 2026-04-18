@@ -7,7 +7,7 @@ import { firstFourLastFour } from '@/lib/utils'
 
 import { ToolCard } from '../ui/ToolCard'
 
-import { useToolStateRender } from './toolUIHelpers'
+import { useToolStateRender, markToolExecuted, wasToolExecuted } from './toolUIHelpers'
 import type { ToolUIComponentProps } from './toolUIHelpers'
 
 type Status = 'idle' | 'no-creds' | 'cancelling' | 'success' | 'error'
@@ -28,7 +28,9 @@ export function CancelPolymarketOrderUI({ toolPart }: ToolUIComponentProps<'canc
   useEffect(() => {
     if (startedRef.current) return
     if (toolState !== 'output-available' || !output) return
+    if (wasToolExecuted(toolPart.toolCallId)) return
     startedRef.current = true
+    markToolExecuted(toolPart.toolCallId)
     void run(output)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolState, output])

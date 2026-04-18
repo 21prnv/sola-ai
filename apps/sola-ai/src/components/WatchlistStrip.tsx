@@ -3,7 +3,8 @@ import { Pin, PinOff } from 'lucide-react'
 import { AssetIcon } from '@/components/ui/AssetIcon'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
-import { useWatchlistStore, type WatchlistToken } from '@/stores/watchlistStore'
+import { useWatchlistStore } from '@/stores/watchlistStore'
+import type { WatchlistToken } from '@/stores/watchlistStore'
 
 type WatchlistStripProps = {
   onTokenClick: (token: WatchlistToken) => void

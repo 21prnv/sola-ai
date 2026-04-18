@@ -63,7 +63,7 @@ export function GetPolymarketPositionsUI({ toolPart }: ToolUIComponentProps<'get
             <div className="text-sm text-muted-foreground">No open positions.</div>
           ) : (
             <div className="divide-y divide-border">
-              {positions.map((p) => (
+              {positions.map(p => (
                 <div key={p.tokenId || p.conditionId} className="py-2 flex gap-3 items-start">
                   {p.icon ? (
                     <img src={p.icon} alt="" className="w-8 h-8 rounded shrink-0 object-cover" />

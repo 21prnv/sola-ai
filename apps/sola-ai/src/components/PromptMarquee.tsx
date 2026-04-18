@@ -26,25 +26,127 @@ type PromptItem = {
 }
 
 const PROMPTS: PromptItem[] = [
-  { text: 'Show my portfolio across all chains', icon: Wallet, label: 'Portfolio', color: 'text-blue-500', ring: 'ring-blue-500/20' },
-  { text: 'Swap half my USDC on Arb to ETH', icon: ArrowLeftRight, label: 'Swap', color: 'text-purple-500', ring: 'ring-purple-500/20' },
-  { text: 'Send 50 USDC to vitalik.eth', icon: Send, label: 'Send', color: 'text-green-500', ring: 'ring-green-500/20' },
-  { text: 'Find Polymarket markets about Bitcoin', icon: TrendingUp, label: 'Polymarket', color: 'text-pink-500', ring: 'ring-pink-500/20' },
-  { text: "What's ETH worth right now?", icon: BarChart3, label: 'Markets', color: 'text-orange-500', ring: 'ring-orange-500/20' },
-  { text: 'Top trending tokens on CoinGecko', icon: Flame, label: 'Trending', color: 'text-red-500', ring: 'ring-red-500/20' },
-  { text: 'Deposit 100 USDC into my vault', icon: Shield, label: 'Vault', color: 'text-emerald-500', ring: 'ring-emerald-500/20' },
-  { text: 'Gas prices across all chains', icon: Fuel, label: 'Gas', color: 'text-amber-500', ring: 'ring-amber-500/20' },
-  { text: 'Show my recent transactions', icon: Coins, label: 'History', color: 'text-indigo-500', ring: 'ring-indigo-500/20' },
+  {
+    text: 'Show my portfolio across all chains',
+    icon: Wallet,
+    label: 'Portfolio',
+    color: 'text-blue-500',
+    ring: 'ring-blue-500/20',
+  },
+  {
+    text: 'Swap half my USDC on Arb to ETH',
+    icon: ArrowLeftRight,
+    label: 'Swap',
+    color: 'text-purple-500',
+    ring: 'ring-purple-500/20',
+  },
+  {
+    text: 'Send 50 USDC to vitalik.eth',
+    icon: Send,
+    label: 'Send',
+    color: 'text-green-500',
+    ring: 'ring-green-500/20',
+  },
+  {
+    text: 'Find Polymarket markets about Bitcoin',
+    icon: TrendingUp,
+    label: 'Polymarket',
+    color: 'text-pink-500',
+    ring: 'ring-pink-500/20',
+  },
+  {
+    text: "What's ETH worth right now?",
+    icon: BarChart3,
+    label: 'Markets',
+    color: 'text-orange-500',
+    ring: 'ring-orange-500/20',
+  },
+  {
+    text: 'Top trending tokens on CoinGecko',
+    icon: Flame,
+    label: 'Trending',
+    color: 'text-red-500',
+    ring: 'ring-red-500/20',
+  },
+  {
+    text: 'Deposit 100 USDC into my vault',
+    icon: Shield,
+    label: 'Vault',
+    color: 'text-emerald-500',
+    ring: 'ring-emerald-500/20',
+  },
+  {
+    text: 'Gas prices across all chains',
+    icon: Fuel,
+    label: 'Gas',
+    color: 'text-amber-500',
+    ring: 'ring-amber-500/20',
+  },
+  {
+    text: 'Show my recent transactions',
+    icon: Coins,
+    label: 'History',
+    color: 'text-indigo-500',
+    ring: 'ring-indigo-500/20',
+  },
   { text: 'Show my saved contacts', icon: Users, label: 'Contacts', color: 'text-teal-500', ring: 'ring-teal-500/20' },
-  { text: 'Give me info on LINK on Arbitrum', icon: Briefcase, label: 'Analysis', color: 'text-violet-500', ring: 'ring-violet-500/20' },
+  {
+    text: 'Give me info on LINK on Arbitrum',
+    icon: Briefcase,
+    label: 'Analysis',
+    color: 'text-violet-500',
+    ring: 'ring-violet-500/20',
+  },
   { text: 'Tell me about Sola AI', icon: Sparkles, label: 'Sola AI', color: 'text-cyan-500', ring: 'ring-cyan-500/20' },
-  { text: 'Buy 10 Yes shares at 0.45', icon: TrendingUp, label: 'Polymarket', color: 'text-pink-500', ring: 'ring-pink-500/20' },
-  { text: 'Portfolio P&L this week', icon: Wallet, label: 'Portfolio', color: 'text-blue-500', ring: 'ring-blue-500/20' },
-  { text: 'Top gainers last 24h', icon: BarChart3, label: 'Markets', color: 'text-orange-500', ring: 'ring-orange-500/20' },
-  { text: 'Quotes for 1 ETH to SOL', icon: ArrowLeftRight, label: 'Swap', color: 'text-purple-500', ring: 'ring-purple-500/20' },
-  { text: 'Cancel all Polymarket orders', icon: TrendingUp, label: 'Polymarket', color: 'text-pink-500', ring: 'ring-pink-500/20' },
-  { text: 'Approvals I should revoke', icon: Coins, label: 'History', color: 'text-indigo-500', ring: 'ring-indigo-500/20' },
-  { text: 'Show my Polymarket positions', icon: TrendingUp, label: 'Polymarket', color: 'text-pink-500', ring: 'ring-pink-500/20' },
+  {
+    text: 'Buy 10 Yes shares at 0.45',
+    icon: TrendingUp,
+    label: 'Polymarket',
+    color: 'text-pink-500',
+    ring: 'ring-pink-500/20',
+  },
+  {
+    text: 'Portfolio P&L this week',
+    icon: Wallet,
+    label: 'Portfolio',
+    color: 'text-blue-500',
+    ring: 'ring-blue-500/20',
+  },
+  {
+    text: 'Top gainers last 24h',
+    icon: BarChart3,
+    label: 'Markets',
+    color: 'text-orange-500',
+    ring: 'ring-orange-500/20',
+  },
+  {
+    text: 'Quotes for 1 ETH to SOL',
+    icon: ArrowLeftRight,
+    label: 'Swap',
+    color: 'text-purple-500',
+    ring: 'ring-purple-500/20',
+  },
+  {
+    text: 'Cancel all Polymarket orders',
+    icon: TrendingUp,
+    label: 'Polymarket',
+    color: 'text-pink-500',
+    ring: 'ring-pink-500/20',
+  },
+  {
+    text: 'Approvals I should revoke',
+    icon: Coins,
+    label: 'History',
+    color: 'text-indigo-500',
+    ring: 'ring-indigo-500/20',
+  },
+  {
+    text: 'Show my Polymarket positions',
+    icon: TrendingUp,
+    label: 'Polymarket',
+    color: 'text-pink-500',
+    ring: 'ring-pink-500/20',
+  },
   { text: 'New coins launching today', icon: Flame, label: 'Trending', color: 'text-red-500', ring: 'ring-red-500/20' },
 ]
 
@@ -68,9 +170,7 @@ function Chip({ item, onClick }: { item: PromptItem; onClick: (text: string) => 
         <Icon className="h-3 w-3" />
       </span>
       <span className="text-foreground/90 whitespace-nowrap font-medium">{item.text}</span>
-      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">
-        {item.label}
-      </span>
+      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">{item.label}</span>
     </button>
   )
 }
