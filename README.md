@@ -1,6 +1,6 @@
 # Sola-AI
 
-Multi-chain AI wallet. Chat with an LLM that invokes on-chain tools — portfolio, swaps, sends, prediction markets, vault deposits, market data — each tool result renders as a typed UI card and handles signing client-side.
+AI for your wallets. Chat your way across chains — portfolios, swaps, sends, prediction markets, and vaults, all from one conversation.
 
 Built by [prnv](https://x.com/21prnv).
 
@@ -181,4 +181,4 @@ See [LICENSE](./LICENSE).
 
 ---
 
-Built by [**prnv**](https://x.com/21prnv).
+Inspired by **ShapeShift**.
