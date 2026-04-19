@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Github, Star } from 'lucide-react'
+import { Github } from 'lucide-react'
 
 import { Button } from './ui/Button'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/Tooltip'
@@ -32,10 +32,7 @@ export function GitHubStarsButton() {
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
             <Github className="w-4 h-4" />
             {stars !== undefined && (
-              <span className="inline-flex items-center gap-1 text-xs tabular-nums">
-              
-                {formatStars(stars)}
-              </span>
+              <span className="inline-flex items-center gap-1 text-xs tabular-nums">{formatStars(stars)}</span>
             )}
           </a>
         </Button>
