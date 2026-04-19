@@ -574,17 +574,23 @@ export async function handleChatRequest(c: Context) {
       stopWhen: stepCountIs(5),
       tools,
       experimental_transform: smoothStream({ chunking: 'word', delayInMs: 3 }),
-      // Venice-specific parameters to disable reasoning for faster responses
-      ...(getProviderName() === 'venice' && {
-        providerOptions: {
+      providerOptions: {
+        // Prevent the model from calling the same tool twice in parallel (e.g.
+        // two initiateSwapTool calls for "swap routes"). The system prompt
+        // already asks for a single call, but OpenAI ignores it for plural
+        // phrasings. Venice is OpenAI-compatible and accepts the same flag.
+        openai: { parallelToolCalls: false },
+        // Venice-specific parameters to disable reasoning for faster responses.
+        ...(getProviderName() === 'venice' && {
           venice: {
             venice_parameters: {
               disable_thinking: true,
               include_venice_system_prompt: false,
             },
+            parallel_tool_calls: false,
           },
-        },
-      }),
+        }),
+      },
       onError: ({ error }) => {
         console.error('[Stream:error] ─────────────────────────────')
         console.error('[Stream:error] raw:', JSON.stringify(error, Object.getOwnPropertyNames(error as object), 2))

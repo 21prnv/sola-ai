@@ -37,6 +37,7 @@ app.use(
       'http://localhost:5173',
       'http://localhost:8787',
       'https://sola-aifrontend-production.up.railway.app',
+      'https://solaai.in',
     ],
     credentials: true,
   })
