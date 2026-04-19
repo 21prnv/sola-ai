@@ -33,7 +33,7 @@ export function GitHubStarsButton() {
             <Github className="w-4 h-4" />
             {stars !== undefined && (
               <span className="inline-flex items-center gap-1 text-xs tabular-nums">
-                <Star className="w-3 h-3" />
+              
                 {formatStars(stars)}
               </span>
             )}
