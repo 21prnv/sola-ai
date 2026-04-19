@@ -25,13 +25,7 @@ export function GitHubStarsButton() {
   })
 
   return (
-    <Button
-      asChild
-      variant="ghost"
-      size="sm"
-      className="h-8 gap-1.5 px-2"
-      aria-label="Star Sola-AI on GitHub"
-    >
+    <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5 px-2" aria-label="Star Sola-AI on GitHub">
       <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
         <Github className="w-4 h-4" />
         {stars !== undefined && (
