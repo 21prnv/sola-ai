@@ -1,5 +1,6 @@
 import { Chat } from '@/components/Chat'
 import { ConnectWallet } from '@/components/ConnectWallet'
+import { GitHubStarsButton } from '@/components/GitHubStarsButton'
 import { PolymarketButton } from '@/components/Polymarket/PolymarketButton'
 import { SidebarLeft } from '@/components/SidebarLeft'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar'
@@ -16,6 +17,7 @@ export const Dashboard = () => {
               <SidebarTrigger />
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <GitHubStarsButton />
               <PolymarketButton />
               <ConnectWallet />
             </div>
