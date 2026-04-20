@@ -140,7 +140,7 @@ class AssetService {
       score += 150 - Math.min(name.length, 50)
     }
 
-    if (isNative) score += 100
+    if (isNative) score += 600
     if (this.isPool(asset)) score -= 500
 
     return score
