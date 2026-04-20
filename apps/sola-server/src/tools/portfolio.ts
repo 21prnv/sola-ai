@@ -55,6 +55,9 @@ export type PortfolioOutput = {
       assetId: string
       name: string
       symbol: string
+      icon?: string
+      price: string
+      priceChange24h?: number
       cryptoAmount: string
       usdAmount: string
     }>
@@ -176,6 +179,9 @@ export async function executeGetPortfolio(
       assetId: balance.asset.assetId,
       name: balance.asset.name,
       symbol: balance.asset.symbol,
+      icon: balance.asset.icon,
+      price: balance.asset.price,
+      priceChange24h: balance.asset.priceChange24h,
       cryptoAmount: balance.cryptoAmount,
       usdAmount: balance.usdAmount,
     })),
@@ -204,7 +210,7 @@ export async function executeGetPortfolio(
 
 export const portfolioTool = {
   description:
-    'Get portfolio balances across connected networks. Returns balances per network with pre-calculated totals (overall and per-network). No UI card - format and present the data in your response. Use the provided totals directly - do not recalculate them.',
+    'Get portfolio balances across connected networks. Returns balances per network with pre-calculated totals (overall and per-network). Renders a UI card showing each asset with its logo, amount, and USD value — respond with a brief sentence and do not repeat balances in prose. Use the provided totals directly - do not recalculate them.',
   inputSchema: portfolioSchema,
   execute: executeGetPortfolio,
 }
