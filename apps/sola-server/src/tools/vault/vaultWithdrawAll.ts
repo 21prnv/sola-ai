@@ -90,7 +90,6 @@ export async function executeVaultWithdrawAll(
     )
   }
 
-  // Group balances by network
   const balancesByNetwork = new Map<string, VaultBalanceEntry[]>()
   for (const balance of vaultBalances.balances) {
     const networkBalances = balancesByNetwork.get(balance.network) ?? []

@@ -125,7 +125,6 @@ async function fetchSingleNetworkHistory(
       parsed = parseSolanaTransaction(validatedTx, address, network)
     }
 
-    // Attach network to parsed transaction
     return { ...parsed, network }
   })
 
@@ -144,7 +143,6 @@ export async function fetchTransactions(
 }> {
   const results = await Promise.allSettled(
     networks.map(network => {
-      // Resolve the correct address for this network
       const address =
         typeof addressOrWallet === 'string'
           ? addressOrWallet

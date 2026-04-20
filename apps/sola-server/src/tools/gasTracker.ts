@@ -29,7 +29,6 @@ const EVM_CHAIN_IDS: ChainId[] = [
 
 const ETH_TRANSFER_GAS = 21000n
 
-// Per-chain thresholds in gwei for gas level classification
 const GAS_THRESHOLDS: Record<string, { low: number; high: number }> = {
   ethereum: { low: 15, high: 50 },
   arbitrum: { low: 0.1, high: 1 },
@@ -84,11 +83,9 @@ export async function executeGasTracker(input: GasTrackerInput): Promise<GasTrac
     throw new Error('No valid EVM networks specified.')
   }
 
-  // Fetch native token prices for USD estimates
   const feeAssetIds = chainIds.map(id => getFeeAssetIdByChainId(id)).filter((id): id is string => !!id)
   const pricesPromise = getSimplePrices(feeAssetIds)
 
-  // Fetch gas prices in parallel
   const gasResults = await Promise.allSettled(
     chainIds.map(async chainId => {
       const client = getViemClient(chainId)
@@ -132,7 +129,6 @@ export async function executeGasTracker(input: GasTrackerInput): Promise<GasTrac
     const feeAssetId = getFeeAssetIdByChainId(chainId)
     const nativePrice = feeAssetId ? (priceMap.get(feeAssetId) ?? 0) : 0
 
-    // Estimated cost for a simple ETH transfer in USD
     const transferCostWei = gasPrice * ETH_TRANSFER_GAS
     const transferCostEth = Number(transferCostWei) / 1e18
     const transferCostUsd = (transferCostEth * nativePrice).toFixed(4)

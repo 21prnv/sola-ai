@@ -133,7 +133,6 @@ async function buildSolanaSplTransfer(
   const senderATA = getAssociatedTokenAddressSync(tokenMint, new PublicKey(from), false, tokenProgramId)
   const recipientATA = getAssociatedTokenAddressSync(tokenMint, new PublicKey(to), false, tokenProgramId)
 
-  // Check if recipient ATA exists
   const accountInfo = await connection.getAccountInfo(recipientATA)
   const needsAtaCreation = !accountInfo
 
@@ -152,7 +151,6 @@ async function buildSolanaSplTransfer(
     )
   }
 
-  // Add transfer instruction - different for Token-2022 vs regular SPL tokens
   if (isToken2022) {
     // Token-2022 requires createTransferCheckedInstruction with mint and decimals
     // Get decimals from on-chain parsed mint data

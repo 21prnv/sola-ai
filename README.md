@@ -178,7 +178,3 @@ Railway's auto-deploy is turned off for both services; the GitHub Action is the 
 ## License
 
 See [LICENSE](./LICENSE).
-
----
-
-Inspired by **ShapeShift**.

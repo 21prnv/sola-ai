@@ -1,7 +1,6 @@
 import { asset } from '@sola-ai/types'
 import z from 'zod'
 
-// Base transaction schema that's reused across swap tools
 export const transactionSchema = z.object({
   chainId: z.string(),
   data: z.string(),
@@ -11,7 +10,6 @@ export const transactionSchema = z.object({
   gasLimit: z.string().optional(),
 })
 
-// Asset input schema for swap operations
 export const assetInputSchema = z.object({
   symbolOrName: z.string().describe('Token symbol or name (e.g., "ETH", "USDC", "SOL")'),
   network: z
@@ -20,7 +18,6 @@ export const assetInputSchema = z.object({
     .describe('Network for this asset. If not specified, will search across all networks.'),
 })
 
-// Comprehensive swap data schema
 export const swapDataSchema = z.object({
   sellAmountCryptoPrecision: z.string(),
   buyAmountCryptoPrecision: z.string(),
@@ -57,7 +54,6 @@ export const swapRouteBuildContextSchema = z.object({
   slippagePercent: z.number().optional(),
 })
 
-// Summary schema for user-facing swap information
 export const swapSummarySchema = z.object({
   sellAsset: z.object({
     symbol: z.string(),
@@ -86,7 +82,6 @@ export const swapSummarySchema = z.object({
   isCrossChain: z.boolean(),
 })
 
-// Core swap preparation output schema
 export const swapPreparationSchema = z.object({
   summary: swapSummarySchema,
   needsApproval: z.boolean().optional(),
@@ -99,7 +94,6 @@ export const swapPreparationSchema = z.object({
   routeBuildContext: swapRouteBuildContextSchema.optional(),
 })
 
-// Export type definitions
 export type TransactionData = z.infer<typeof transactionSchema>
 export type AssetInput = z.infer<typeof assetInputSchema>
 export type SwapData = z.infer<typeof swapDataSchema>

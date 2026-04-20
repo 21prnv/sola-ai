@@ -177,7 +177,6 @@ export function SendUI({ toolPart }: ToolUIComponentProps<'sendTool'>) {
             <Execution.Step index={SEND_STEPS.SEND} label="Sign and send transaction" connectorTop />
           </Execution.Stepper>
 
-          {/* Optimistic pending state — shows immediately after tx is signed */}
           {ctx.state.meta.txHash && !ctx.state.terminal && (
             <div className="mx-4 mb-4 flex items-center gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2">
               <div className="size-2 rounded-full bg-amber-500 animate-pulse" />
@@ -187,7 +186,6 @@ export function SendUI({ toolPart }: ToolUIComponentProps<'sendTool'>) {
             </div>
           )}
 
-          {/* Success: View in Explorer */}
           {ctx.state.terminal && !ctx.state.error && ctx.state.meta.txHash && networkName && (
             <div className="px-4 pb-4">
               <a

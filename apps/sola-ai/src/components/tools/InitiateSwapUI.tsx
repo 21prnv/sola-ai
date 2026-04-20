@@ -27,8 +27,6 @@ type QuoteOption = NonNullable<InitiateSwapOutput['quoteOptions']>[number]
 
 const QUOTE_TTL_SECONDS = 30
 
-/* ── Helpers ── */
-
 function formatRouteDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return '—'
   if (seconds < 90) return `~${Math.round(seconds)}s`
@@ -50,9 +48,6 @@ function priceImpactVsBest(opt: QuoteOption, index: number, list: QuoteOption[])
   return `${sign}${pct.toFixed(2)}%`
 }
 
-/* ── Sub-components ── */
-
-/** Inline copy-hash button */
 function CopyHash({ hash }: { hash: string }) {
   const [copied, setCopied] = useState(false)
   const handleCopy = useCallback(() => {
@@ -73,7 +68,6 @@ function CopyHash({ hash }: { hash: string }) {
   )
 }
 
-/** Animated flip text for rate changes */
 function FlipRate({ value, className }: { value: string; className?: string }) {
   const [displayValue, setDisplayValue] = useState(value)
   const [isFlipping, setIsFlipping] = useState(false)
@@ -105,7 +99,6 @@ function FlipRate({ value, className }: { value: string; className?: string }) {
   )
 }
 
-/** Countdown bar with smooth color gradient */
 function QuoteCountdown({
   secondsLeft,
   total,
@@ -165,7 +158,6 @@ function QuoteCountdown({
   )
 }
 
-/** Skeleton placeholder for a route card */
 function RouteCardSkeleton() {
   return (
     <div className="w-full rounded-2xl border border-border/60 overflow-hidden">
@@ -192,7 +184,6 @@ function RouteCardSkeleton() {
   )
 }
 
-/** Success particle burst overlay */
 function SwapSuccessParticles() {
   const particles = useMemo(() => {
     return Array.from({ length: 24 }, (_, i) => {
@@ -230,7 +221,6 @@ function SwapSuccessParticles() {
   )
 }
 
-/** Hook: countdown timer for quote expiry */
 function useQuoteCountdown(isActive: boolean) {
   const [secondsLeft, setSecondsLeft] = useState(QUOTE_TTL_SECONDS)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -255,8 +245,6 @@ function useQuoteCountdown(isActive: boolean) {
 
   return { secondsLeft, expired: secondsLeft <= 0, reset }
 }
-
-/* ── Main component ── */
 
 export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapTool' | 'initiateSwapUsdTool'>) {
   const { state: toolState, output, toolCallId } = toolPart
@@ -304,7 +292,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
     executionPayload
   )
 
-  // Trigger particle burst on terminal success
   const prevTerminalRef = useRef(false)
   useEffect(() => {
     if (state.terminal && !state.error && !prevTerminalRef.current) {
@@ -353,7 +340,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
 
   const sellUsd = swapOutput?.summary?.sellAsset?.valueUSD
 
-  // Is the swap actively executing (between quote confirmation and terminal)?
   const isExecuting = Boolean(executionPayload && !state.terminal)
 
   const handleConfirmRoute = useCallback(async () => {
@@ -425,7 +411,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
     <Execution.Root state={state} toolCallId={toolCallId}>
       <Execution.HistoricalGuard fallbackLabel="Swap">
         <TxStepCard.Root>
-          {/* Success particles overlay */}
           <AnimatePresence>{showParticles && <SwapSuccessParticles />}</AnimatePresence>
 
           <TxStepCard.Header>
@@ -464,7 +449,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                     </p>
                   </div>
 
-                  {/* Quote expiry countdown with smooth gradient */}
                   <QuoteCountdown
                     secondsLeft={secondsLeft}
                     total={QUOTE_TTL_SECONDS}
@@ -473,7 +457,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                     isRefreshing={isRefreshing}
                   />
 
-                  {/* Route cards with staggered entrance */}
                   <ul className="space-y-3">
                     {quoteRouteList.map((opt, routeIndex) => {
                       const selected = opt.swapperId === selectedSwapperId
@@ -621,7 +604,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                               </div>
                             </div>
 
-                            {/* Minimum received row */}
                             {opt.outputAmountMin && opt.outputAmountMin !== opt.outputAmount && (
                               <div className="border-t border-border/40 px-3 py-1.5 text-[11px] text-muted-foreground flex justify-between">
                                 <span>Min. received</span>
@@ -639,7 +621,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                     })}
                   </ul>
 
-                  {/* High-impact warning banner */}
                   <AnimatePresence>
                     {selectedIsHighImpact && !highImpactAcknowledged && (
                       <motion.div
@@ -690,7 +671,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                 </div>
               )}
 
-              {/* Skeleton shimmer while quotes are loading */}
               {awaiting && routeCtx && (!quoteRouteList || quoteRouteList.length === 0) && (
                 <div className="mb-5 space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -811,7 +791,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
             />
           </Execution.Stepper>
 
-          {/* Success: View in Explorer */}
           {state.terminal && !state.error && swapTxHash && networkName && (
             <div className="px-4 pb-4">
               <a
@@ -829,7 +808,6 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
             </div>
           )}
 
-          {/* Error footer with retry */}
           {state.error ? (
             <div className="px-4 pb-4 pt-2 space-y-2">
               <p className="text-sm font-medium text-red-500 truncate">Execution failed: {state.error}</p>

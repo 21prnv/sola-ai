@@ -24,7 +24,6 @@ function useExecutionContext(): ExecutionContextValue {
   return ctx
 }
 
-// --- Root ---
 interface RootProps {
   state: ToolExecutionState
   toolCallId: string
@@ -42,7 +41,6 @@ function Root({ state, toolCallId, children }: RootProps) {
   )
 }
 
-// --- HistoricalGuard ---
 interface HistoricalGuardProps {
   children: ReactNode
   fallbackLabel?: string
@@ -64,7 +62,6 @@ function HistoricalGuard({ children, fallbackLabel = 'execution' }: HistoricalGu
   return <>{children}</>
 }
 
-// --- Stepper ---
 interface StepperProps {
   children: ReactNode
 }
@@ -81,7 +78,6 @@ function Stepper({ children }: StepperProps) {
   )
 }
 
-// --- Step ---
 interface StepProps {
   index: number
   label: ReactNode
@@ -108,7 +104,6 @@ function Step({ index, label, subtitle, connectorTop, connectorBottom, overrideS
   )
 }
 
-// --- ErrorFooter ---
 function ErrorFooter() {
   const { state } = useExecutionContext()
   if (!state.error) return null

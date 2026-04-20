@@ -24,13 +24,10 @@ const SOLANA_RPC_URL = (() => {
 })()
 
 export async function executeSend(input: SendInput, walletContext?: WalletContext): Promise<SendOutput> {
-  // 1. Resolve asset (prioritize tokens user owns)
   const asset = await resolveAsset(input.asset, walletContext)
 
-  // 2. Get sender address
   const from = getAddressForChain(walletContext, asset.chainId)
 
-  // 3. Resolve contact name, then ENS name if needed, then validate
   let recipient = input.recipient
   const contact = walletContext?.contacts?.find(c => c.name.toLowerCase() === recipient.trim().toLowerCase())
   if (contact) {
@@ -39,27 +36,22 @@ export async function executeSend(input: SendInput, walletContext?: WalletContex
   const { address: resolvedRecipient, ensName } = await resolveEnsIfNeeded(recipient)
   validateAddress(resolvedRecipient, asset.chainId)
 
-  // 4. Get balance and calculate send amount (handle "max")
   const balance = await getBalance(from, asset)
 
   let sendAmount: string
   if (input.amount.toLowerCase() === 'max') {
     sendAmount = await calculateMaxSendAmount(asset, balance, from, resolvedRecipient)
   } else {
-    // Validate amount
     if (!Number.isFinite(parseFloat(input.amount)) || parseFloat(input.amount) <= 0) {
       throw new Error('Amount must be a positive number')
     }
     sendAmount = input.amount
 
-    // Check balance
     await validateSufficientBalance(from, asset, sendAmount)
   }
 
-  // 5. Build transaction
   const txResult = await buildSendTransaction(asset, from, resolvedRecipient, sendAmount)
 
-  // 6. Create summary (show ENS name in display if resolved)
   const displayTo = ensName
     ? `${ensName} (${resolvedRecipient.slice(0, 6)}...${resolvedRecipient.slice(-4)})`
     : undefined

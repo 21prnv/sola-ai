@@ -78,17 +78,15 @@ async function runSwapExecution(data: SwapData, ctx: any) {
         solanaSigner = (await ctx.refs.solanaWallet.current.getSigner()) as SolanaWalletSigner
       }
 
-      // Step 0: Quote complete
       ctx.setState((draft: any) => {
         draft.toolOutput = data
         draft.meta.networkName = swapData.sellAsset.network
       })
       ctx.advanceStep()
 
-      // Step 1: Network switch
       await switchNetworkStep(ctx, sellAssetChainId)
 
-      // Step 2: Approve ��� re-check on-chain allowance to handle parallel swaps
+      // Re-check on-chain allowance to handle parallel swaps
       ctx.setSubstatus('Checking allowance...')
       const approvalTxHash = await ensureAllowance({
         sellAssetId: swapData.sellAsset.assetId,
@@ -111,7 +109,6 @@ async function runSwapExecution(data: SwapData, ctx: any) {
         ctx.skipStep()
       }
 
-      // Step 3: Swap
       ctx.setSubstatus('Requesting signature...')
       const swapTxHash = await executeSwap(swapTx, { solanaSigner })
       ctx.setMeta({ txHash: swapTxHash })
@@ -198,7 +195,6 @@ export const useSwapExecution = (
 
   useExecuteOnce(ctx, swapData, runSwapExecution)
 
-  // Retry: clear runtime state so useExecuteOnce can re-trigger
   const hasFailed = Boolean(ctx.state.error)
   const retry = useCallback(() => {
     if (!dataRef.current) return

@@ -44,7 +44,6 @@ export const useVaultWithdrawAllExecution = (
           throw new Error('EVM wallet not connected')
         }
 
-        // Step 0: Prepare complete
         ctx.setState(draft => {
           draft.toolOutput = data
         })

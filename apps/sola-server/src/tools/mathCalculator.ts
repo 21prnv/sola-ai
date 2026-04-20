@@ -1,7 +1,6 @@
 import { Parser } from 'expr-eval'
 import z from 'zod'
 
-// Create expr-eval parser instance
 const parser = new Parser()
 
 // Safety constants to prevent DoS attacks
@@ -31,7 +30,6 @@ export const mathCalculator = {
     const { expression, precision } = input
 
     try {
-      // Validate expression safety before evaluation
       if (expression.length > MAX_EXPRESSION_LENGTH) {
         throw new Error(`Expression too long (max ${MAX_EXPRESSION_LENGTH} characters)`)
       }
@@ -43,16 +41,12 @@ export const mathCalculator = {
         }
       }
 
-      // Evaluate the expression using expr-eval
       const rawResult = parser.evaluate(expression)
 
-      // Convert result to string format
       let result: string
       if (precision !== undefined) {
-        // Apply specific precision if requested
         result = Number(rawResult).toFixed(precision)
       } else {
-        // Use default string representation
         result = String(rawResult)
       }
 

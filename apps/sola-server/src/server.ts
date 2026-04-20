@@ -27,7 +27,6 @@ try {
 
 const app = new Hono()
 
-// Enable CORS for all routes
 app.use(
   '/*',
   cors({
@@ -43,29 +42,22 @@ app.use(
   })
 )
 
-// Health check endpoint
 app.get('/health', c => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// Chat endpoint
 app.post('/api/chat', handleChatRequest)
 
-// Chat stream resume endpoint
 app.get('/api/chat/resume/:conversationId', handleChatResumeRequest)
 
-// Portfolio endpoint
 app.post('/api/portfolio', handlePortfolioRequest)
 
-// Swap: build executable tx after user selects a Rango quote route
 app.post('/api/swap/build', handleSwapBuildRequest)
 
-// 404 handler
 app.notFound(c => {
   return c.json({ error: 'Not found' }, 404)
 })
 
-// Error handler
 app.onError((err, c) => {
   console.error('[Server Error]:', err)
   return c.json({ error: 'Internal server error', message: err.message }, 500)
@@ -85,5 +77,5 @@ export default {
   port,
   // Increase timeout to handle exhaustive transaction history queries
   // which can take longer when fetching across multiple networks
-  idleTimeout: 30, // 30 seconds
+  idleTimeout: 30,
 }

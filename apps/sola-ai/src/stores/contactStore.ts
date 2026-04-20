@@ -33,7 +33,6 @@ export const useContactStore = create<ContactStore>()(
           }
 
           if (existingIndex >= 0) {
-            // Update existing contact
             const updated = [...state.contacts]
             updated[existingIndex] = entry
             return { contacts: updated }

@@ -50,7 +50,6 @@ export async function executeRevokeApproval(
   const spender = getAddress(input.spender)
   const tokenAddress = getAddress(fromAssetId(asset.assetId).assetReference)
 
-  // Check current allowance
   const client = getViemClient(asset.chainId)
   const currentAllowance = await client.readContract({
     address: tokenAddress,
@@ -65,7 +64,6 @@ export async function executeRevokeApproval(
     )
   }
 
-  // Build revoke tx (approve to 0)
   const data = encodeFunctionData({
     abi: erc20Abi,
     functionName: 'approve',

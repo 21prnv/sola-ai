@@ -37,7 +37,6 @@ export async function executeVaultBalance(
   input: VaultBalanceInput,
   walletContext?: WalletContext
 ): Promise<VaultBalanceOutput> {
-  // Build list of networks to query with their per-chain Safe addresses
   const networksWithAddresses: Array<{ network: EvmSolanaNetwork; safeAddress: string; chainId: string }> = []
 
   if (input.network) {
@@ -52,7 +51,6 @@ export async function executeVaultBalance(
       chainId: networkToChainIdMap[input.network],
     })
   } else {
-    // Query all deployed chains
     const deploymentState = walletContext?.safeDeploymentState
     if (!deploymentState || Object.keys(deploymentState).length === 0) {
       throw new Error('No Safe vault found. Deploy a Safe on this network to use the vault.')
@@ -76,7 +74,6 @@ export async function executeVaultBalance(
   const allBalances: VaultBalanceEntry[] = []
   let totalUsd = new BigNumber(0)
 
-  // Use the first Safe address as the representative address for the response
   const primarySafeAddress = networksWithAddresses[0]!.safeAddress
 
   const results = await Promise.all(

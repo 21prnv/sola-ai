@@ -76,26 +76,20 @@ export const MAX_MESSAGES_PER_CONVERSATION = 500
 type ChatMessage = ReturnType<typeof useChat>['messages'][number]
 
 interface ChatState {
-  // Conversation metadata (persisted)
   conversations: Conversation[]
 
-  // Messages (persisted)
   messagesByConversation: Record<string, ChatMessage[]>
 
-  // Tool execution state
   historicalToolIds: Set<string>
   runtimeToolStates: Map<string, ToolExecutionState>
   persistedTransactions: ToolExecutionState[]
 
-  // Conversation methods
   saveConversation: (id: string, title: string) => void
   deleteConversation: (id: string) => void
 
-  // Message methods
   setMessages: (conversationId: string, messages: ChatMessage[]) => void
   getMessages: (conversationId: string) => ChatMessage[]
 
-  // Tool execution methods
   markAsHistorical: (toolCallIds: string[]) => void
   isHistorical: (toolCallId: string) => boolean
   clearHistoricalTools: () => void

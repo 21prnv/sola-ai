@@ -546,7 +546,6 @@ export async function handleChatRequest(c: Context) {
       messageCount: messages.length,
     })
 
-    // Convert UIMessages to ModelMessages
     const modelMessages = convertToModelMessages(messages as Parameters<typeof convertToModelMessages>[0])
 
     const model = getModel()

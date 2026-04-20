@@ -75,7 +75,6 @@ export async function executeTransactionHistory(
     // Cap at 25 transactions in agent context unless explicitly overridden
     const effectiveLimit = input.limit ?? (shouldIncludeTransactions ? 25 : undefined)
 
-    // Paginate only the returned transactions
     const paginatedTransactions = paginate(transactions, input.offset ?? 0, effectiveLimit)
 
     const mayBeIncomplete = strategy.mode === 'limited' && fetchedCount >= MAX_LIMITED_FETCH_COUNT
