@@ -285,10 +285,8 @@ export function GetTransactionHistoryUI({ toolPart }: ToolUIComponentProps<'tran
     const renderCount = typeof renderTransactions === 'number' ? renderTransactions : transactions.length
     const sliced = transactions.slice(0, renderCount)
 
-    // Filter by type
     const typeFiltered = typeFilter === 'all' ? sliced : sliced.filter(tx => tx.type === typeFilter)
 
-    // Filter by search (txid, from, to, token symbols)
     const query = searchQuery.toLowerCase().trim()
     const filtered = query
       ? typeFiltered.filter(tx => {
@@ -305,7 +303,6 @@ export function GetTransactionHistoryUI({ toolPart }: ToolUIComponentProps<'tran
 
     return (
       <div className="space-y-3">
-        {/* Search & filter bar */}
         {sliced.length > 3 && (
           <div className="space-y-2">
             <div className="relative">

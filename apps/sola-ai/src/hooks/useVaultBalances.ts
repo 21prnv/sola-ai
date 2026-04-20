@@ -17,7 +17,6 @@ const chainIdToNetworkName: Record<number, string> = Object.fromEntries(
 export function useVaultBalances() {
   const { isDeployed, safeDeploymentState } = useSafeAccount()
 
-  // Build a stable list of deployed chains with their Safe addresses
   const deployedChains = useMemo(() => {
     return Object.entries(safeDeploymentState)
       .filter(([, state]) => state.isDeployed && state.safeAddress)
@@ -29,7 +28,6 @@ export function useVaultBalances() {
       .filter((c): c is typeof c & { networkName: string } => !!c.networkName)
   }, [safeDeploymentState])
 
-  // Stable query key based on per-chain addresses
   const queryKey = useMemo(
     () => ['vaultBalances', ...deployedChains.map(c => `${c.chainId}:${c.safeAddress}`)],
     [deployedChains]

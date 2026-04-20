@@ -107,7 +107,6 @@ export function Chat() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      {/* Messages viewport */}
       <div className="min-h-0 flex-1 overflow-hidden">
         {isEmpty ? (
           <div className="h-full" aria-hidden />
@@ -134,7 +133,6 @@ export function Chat() {
         )}
       </div>
 
-      {/* Scroll to bottom button */}
       <AnimatePresence>
         {showScrollButton && !isEmpty && (
           <motion.button
@@ -155,7 +153,6 @@ export function Chat() {
         )}
       </AnimatePresence>
 
-      {/* Composer dock: matches chat multi-modal-input — floats from ~25vh to bottom after first message */}
       <motion.div
         layoutId="sola-multi-modal-input"
         transition={{ type: 'spring', stiffness: 1000, damping: 40 }}

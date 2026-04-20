@@ -14,7 +14,6 @@ rootWindow.Buffer = Buffer
 
 const isProduction = import.meta.env.PROD
 
-// Initialize Sentry (production only)
 if (isProduction) {
   Sentry.init({
     dsn: 'https://95ef4505bd9dcacd40018abe1948c017@o4511162959724544.ingest.us.sentry.io/4511162970341376',

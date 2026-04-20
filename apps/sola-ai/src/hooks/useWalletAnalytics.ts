@@ -26,7 +26,6 @@ export function useWalletAnalytics() {
   }, [solanaAddress])
 
   useEffect(() => {
-    // Reset analytics when both wallets disconnect
     if (!evmAddress && !solanaAddress && (prevEvmAddress.current || prevSolanaAddress.current)) {
       analytics.reset()
     }

@@ -59,10 +59,8 @@ export async function executePortfolioPnl(
     throw new Error('No networks specified and no connected wallets found.')
   }
 
-  // Fetch current portfolio
   const portfolioData = await getPortfolioData({ networks }, walletContext)
 
-  // Collect all balances, sort by USD value, take top N
   const allBalances = portfolioData.flatMap(nd =>
     nd.balances.map(b => ({
       ...b,
@@ -86,7 +84,6 @@ export async function executePortfolioPnl(
     }
   }
 
-  // Fetch historical prices
   const nowUnix = Math.floor(Date.now() / 1000)
   const startUnix = nowUnix - (TIMEFRAME_SECONDS[timeframe] ?? TIMEFRAME_SECONDS['24h']!)
 
@@ -98,7 +95,6 @@ export async function executePortfolioPnl(
       const chartData = await getMarketChartRange(coinGeckoId, startUnix, nowUnix)
       if (!chartData.prices || chartData.prices.length === 0) return null
 
-      // First price point is the historical price
       return { assetId: balance.asset.assetId, price: chartData.prices[0]![1] }
     })
   )
@@ -110,7 +106,6 @@ export async function executePortfolioPnl(
     }
   }
 
-  // Calculate PnL
   let totalCurrentValue = new BigNumber(0)
   let totalHistoricalValue = new BigNumber(0)
   const assets: AssetPnlEntry[] = []

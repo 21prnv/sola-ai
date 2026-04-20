@@ -21,7 +21,6 @@ export function SaveContactUI({ toolPart }: ToolUIComponentProps<'saveContactToo
     error: null,
   })
 
-  // Persist to contact store when output is available
   useEffect(() => {
     if (contactOutput && !savedRef.current) {
       savedRef.current = true

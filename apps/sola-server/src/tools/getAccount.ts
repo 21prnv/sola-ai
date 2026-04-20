@@ -29,7 +29,6 @@ export async function executeGetAccount(input: GetAccountInput): Promise<GetAcco
   const { network } = input
   const chainId = networkToChainIdMap[network]
 
-  // Resolve ENS name if provided (e.g. "vitalik.eth")
   const { address: account } = await resolveEnsIfNeeded(input.address)
   validateAddress(account, chainId)
 

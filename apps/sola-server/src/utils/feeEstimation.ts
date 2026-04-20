@@ -130,7 +130,6 @@ async function calculateMaxSolanaSend(asset: Asset, balance: string, from: strin
   }
 
   try {
-    // Check sender's SOL balance for fees
     const solBalance = await connection.getBalance(new PublicKey(from))
 
     if (BigInt(solBalance) < requiredSolBalance) {

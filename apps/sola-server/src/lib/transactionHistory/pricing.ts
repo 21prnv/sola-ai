@@ -12,7 +12,6 @@ export async function fetchPricesForTransactions(
 ): Promise<PriceMap> {
   const assetIds = new Set<AssetId>()
 
-  // Extract native token assetIds for each network
   for (const network of networksChecked) {
     const nativeAssetId = networkToNativeAssetId[network as keyof typeof networkToNativeAssetId]
     if (nativeAssetId) {
@@ -20,7 +19,6 @@ export async function fetchPricesForTransactions(
     }
   }
 
-  // Extract assetIds from tokenTransfers
   for (const tx of transactions) {
     if (tx.tokenTransfers) {
       for (const transfer of tx.tokenTransfers) {

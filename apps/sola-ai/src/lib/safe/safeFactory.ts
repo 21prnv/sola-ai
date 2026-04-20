@@ -23,7 +23,6 @@ export interface SafeDeploymentResult {
   txHash?: string
 }
 
-// Predict the Safe address without deploying
 export async function predictSafeAddress(ownerAddress: string, provider: SafeProvider): Promise<string> {
   const saltNonce = computeSafeSalt(ownerAddress)
 
@@ -53,7 +52,6 @@ export async function deploySafe(
 ): Promise<SafeDeploymentResult> {
   const saltNonce = computeSafeSalt(ownerAddress)
 
-  // Validate provider is on the target chain before deploying
   const providerChainId = Number(await provider.request({ method: 'eth_chainId' }))
   if (providerChainId !== chainId) {
     throw new Error(
@@ -81,7 +79,6 @@ export async function deploySafe(
 
   const predictedAddress = await protocolKit.getAddress()
 
-  // Check if already deployed
   const isAlreadyDeployed = await protocolKit.isSafeDeployed()
   if (isAlreadyDeployed) {
     const existingState = useSafeStore.getState().getChainState(ownerAddress, chainId)
@@ -94,7 +91,6 @@ export async function deploySafe(
     return { safeAddress: predictedAddress, isDeployed: true }
   }
 
-  // Deploy the Safe
   const deploymentTransaction = await protocolKit.createSafeDeploymentTransaction()
 
   const publicClient = createPublicClient({ transport: custom(compositeProvider) })
@@ -109,7 +105,6 @@ export async function deploySafe(
   })
   const gas = estimatedGas + (estimatedGas * 20n) / 100n
 
-  // Send the deployment transaction via viem wallet client
   const walletClient = createWalletClient({
     transport: custom(provider),
     account: signerAddress as `0x${string}`,

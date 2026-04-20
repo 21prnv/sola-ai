@@ -204,14 +204,12 @@ const TxStepCardAmount = ({
 }
 
 export const TxStepCard = {
-  // Re-export generic components from ToolCard
   Root: ToolCard.Root,
   Header: ToolCard.Header,
   HeaderRow: ToolCard.HeaderRow,
   Content: ToolCard.Content,
   Details: ToolCard.Details,
   DetailItem: ToolCard.DetailItem,
-  // Transaction-specific components
   Stepper: TxStepCardStepper,
   Step: TxStepCardStep,
   SwapPair: TxStepCardSwapPair,

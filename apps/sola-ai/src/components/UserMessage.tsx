@@ -6,7 +6,6 @@ interface UserMessageProps {
 }
 
 export const UserMessage = memo(function UserMessage({ message }: UserMessageProps) {
-  // Extract text content from parts
   const textContent = message.parts
     .filter(part => part.type === 'text')
     .map(part => part.text)

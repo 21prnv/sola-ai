@@ -50,7 +50,6 @@ export function filter(transactions: TransactionWithUsd[], filters: FilterOption
       return false
     }
 
-    // Asset filtering
     const txAssets = getTransactionAssetSymbols(tx)
 
     // If includeAssets is specified, transaction must involve at least one of those assets
