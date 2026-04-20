@@ -90,10 +90,7 @@ export function PortfolioUI({ toolPart }: ToolUIComponentProps<'portfolioTool'>)
 
                   <div className="divide-y divide-border/60 rounded-lg bg-whiteAlpha-50/50">
                     {networkData.balances.map(balance => (
-                      <div
-                        key={`${balance.assetId}`}
-                        className="flex items-center justify-between gap-3 py-2.5 px-3"
-                      >
+                      <div key={`${balance.assetId}`} className="flex items-center justify-between gap-3 py-2.5 px-3">
                         <div className="flex items-center gap-3 min-w-0">
                           <AssetIcon
                             icon={balance.icon}
@@ -112,12 +109,7 @@ export function PortfolioUI({ toolPart }: ToolUIComponentProps<'portfolioTool'>)
                         <div className="flex flex-col items-end shrink-0">
                           <Amount.Fiat value={balance.usdAmount} className="text-sm font-medium" />
                           {balance.priceChange24h !== undefined && balance.priceChange24h !== null && (
-                            <Amount.Percent
-                              value={balance.priceChange24h}
-                              autoColor
-                              showSign
-                              className="text-xs"
-                            />
+                            <Amount.Percent value={balance.priceChange24h} autoColor showSign className="text-xs" />
                           )}
                         </div>
                       </div>
