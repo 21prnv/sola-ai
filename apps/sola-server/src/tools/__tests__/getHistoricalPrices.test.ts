@@ -86,14 +86,14 @@ describe('getHistoricalPricesSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  test('defaults dataPoints to 2', () => {
+  test('defaults dataPoints to 30', () => {
     const input = { assets: [{ searchTerm: 'ETH' }], startDate: '2024-01-01' }
     const result = getHistoricalPricesSchema.parse(input)
-    expect(result.dataPoints).toBe(2)
+    expect(result.dataPoints).toBe(30)
   })
 
-  test('enforces dataPoints max 30', () => {
-    const input = { assets: [{ searchTerm: 'ETH' }], startDate: '2024-01-01', dataPoints: 31 }
+  test('enforces dataPoints max 60', () => {
+    const input = { assets: [{ searchTerm: 'ETH' }], startDate: '2024-01-01', dataPoints: 61 }
     const result = getHistoricalPricesSchema.safeParse(input)
     expect(result.success).toBe(false)
   })
