@@ -24,9 +24,11 @@ export const getHistoricalPricesSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(30)
-    .default(2)
-    .describe('Number of evenly-spaced price points to return (1-30, default 2 for start/end comparison)'),
+    .max(60)
+    .default(30)
+    .describe(
+      'Number of evenly-spaced price points to return (1-60). The UI renders a chart from these points, so prefer 20-40 for a smooth line. Use 2 only for a pure start/end comparison with no chart.'
+    ),
 })
 
 export type GetHistoricalPricesInput = z.infer<typeof getHistoricalPricesSchema>
