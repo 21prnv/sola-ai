@@ -1,5 +1,5 @@
 import { CalendarDays, ChartLine, TriangleAlert, TrendingDown, TrendingUp } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -7,11 +7,6 @@ import { ToolCard } from '../ui/ToolCard'
 
 import { useToolStateRender } from './toolUIHelpers'
 import type { ToolUIComponentProps } from './toolUIHelpers'
-
-type HistoricalRange = {
-  label: '1D' | '7D' | '1M' | '6M' | '1Y' | 'MAX'
-  ms: number | null
-}
 
 type PricePoint = { timestamp: number; price: number }
 
@@ -31,15 +26,6 @@ type AssetHistoricalError = {
   error: string
 }
 
-const RANGES: HistoricalRange[] = [
-  { label: '1D', ms: 24 * 60 * 60 * 1000 },
-  { label: '7D', ms: 7 * 24 * 60 * 60 * 1000 },
-  { label: '1M', ms: 30 * 24 * 60 * 60 * 1000 },
-  { label: '6M', ms: 180 * 24 * 60 * 60 * 1000 },
-  { label: '1Y', ms: 365 * 24 * 60 * 60 * 1000 },
-  { label: 'MAX', ms: null },
-]
-
 function isAssetResult(result: AssetHistoricalResult | AssetHistoricalError): result is AssetHistoricalResult {
   return 'dataPoints' in result
 }
@@ -49,6 +35,10 @@ function formatPrice(value: number): string {
     minimumFractionDigits: value < 1 ? 4 : 2,
     maximumFractionDigits: value < 1 ? 6 : 2,
   })
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function linePath(points: Array<{ x: number; y: number }>): string {
@@ -132,44 +122,15 @@ export function HistoricalPricesUI({ toolPart }: ToolUIComponentProps<'getHistor
 }
 
 function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
-  const [activeRange, setActiveRange] = useState<HistoricalRange['label']>('MAX')
-  const sortedData = useMemo(() => [...asset.dataPoints].sort((a, b) => a.timestamp - b.timestamp), [asset.dataPoints])
-
-  const latestTimestampMs = sortedData[sortedData.length - 1] ? sortedData[sortedData.length - 1]!.timestamp * 1000 : 0
-
-  const rangeAvailability = useMemo(() => {
-    return RANGES.map(range => {
-      if (range.ms === null) return { ...range, available: sortedData.length >= 2 }
-      const threshold = latestTimestampMs - range.ms
-      const points = sortedData.filter(point => point.timestamp * 1000 >= threshold)
-      return { ...range, available: points.length >= 2 }
-    })
-  }, [latestTimestampMs, sortedData])
-
-  useEffect(() => {
-    const current = rangeAvailability.find(range => range.label === activeRange)
-    if (current?.available) return
-    const fallback = rangeAvailability.find(range => range.available)
-    setActiveRange(fallback?.label ?? 'MAX')
-  }, [activeRange, rangeAvailability])
-
-  const activeRangeMs = rangeAvailability.find(range => range.label === activeRange)?.ms ?? null
-
-  const chartData = useMemo(() => {
-    if (activeRangeMs === null) return sortedData
-    const threshold = latestTimestampMs - activeRangeMs
-    const filtered = sortedData.filter(point => point.timestamp * 1000 >= threshold)
-    return filtered.length >= 2 ? filtered : sortedData
-  }, [activeRangeMs, latestTimestampMs, sortedData])
+  const chartData = useMemo(() => [...asset.dataPoints].sort((a, b) => a.timestamp - b.timestamp), [asset.dataPoints])
 
   const chartMetrics = useMemo(() => {
+    if (chartData.length === 0) return { min: 0, max: 0, yMin: 0, yMax: 1 }
     const prices = chartData.map(point => point.price)
     const min = Math.min(...prices)
     const max = Math.max(...prices)
     const pad = (max - min) * 0.08 || max * 0.02 || 1
-    const yMin = min - pad
-    const yMax = max + pad
-    return { min, max, yMin, yMax }
+    return { min, max, yMin: min - pad, yMax: max + pad }
   }, [chartData])
 
   const currentPrice = chartData[chartData.length - 1]?.price ?? asset.endPrice
@@ -177,13 +138,14 @@ function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
   const priceDelta = currentPrice - startPrice
   const percentDelta = startPrice !== 0 ? (priceDelta / startPrice) * 100 : 0
   const positive = percentDelta >= 0
+  const accent = positive ? '#22c55e' : '#ef4444'
 
   const width = 760
-  const height = 280
-  const topPad = 10
-  const bottomPad = 28
-  const leftPad = 10
-  const rightPad = 58
+  const height = 260
+  const topPad = 12
+  const bottomPad = 16
+  const leftPad = 12
+  const rightPad = 64
   const innerWidth = width - leftPad - rightPad
   const innerHeight = height - topPad - bottomPad
 
@@ -208,98 +170,79 @@ function HistoricalAssetCard({ asset }: { asset: AssetHistoricalResult }) {
     return { value, y }
   })
 
-  const rangeStart = new Date((chartData[0]?.timestamp ?? asset.dataPoints[0]?.timestamp ?? 0) * 1000)
-  const rangeEnd = new Date(
-    (chartData[chartData.length - 1]?.timestamp ?? asset.dataPoints[asset.dataPoints.length - 1]?.timestamp ?? 0) * 1000
-  )
+  const rangeStart = new Date((chartData[0]?.timestamp ?? 0) * 1000)
+  const rangeEnd = new Date((chartData[chartData.length - 1]?.timestamp ?? 0) * 1000)
+  const gradientId = `historical-area-${asset.assetId}`
 
   return (
-    <ToolCard.Root
-      defaultOpen
-      className="border-border/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_35%,rgba(0,0,0,0.25)_100%)]"
-    >
+    <ToolCard.Root defaultOpen>
       <ToolCard.Header className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
             <div className="text-sm text-muted-foreground">
               {asset.name} ({asset.symbol.toUpperCase()})
             </div>
-            <div className="mt-1 text-4xl font-semibold tracking-tight">${formatPrice(currentPrice)}</div>
+            <div className="text-4xl font-semibold tracking-tight">${formatPrice(currentPrice)}</div>
             <div
               className={cn(
-                'mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-medium',
-                positive ? 'bg-green-500/12 text-green-500' : 'bg-red-500/12 text-red-500'
+                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-medium',
+                positive
+                  ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                  : 'bg-red-500/15 text-red-600 dark:text-red-400'
               )}
             >
               {positive ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
               {`${positive ? '+' : ''}$${formatPrice(Math.abs(priceDelta))} (${percentDelta.toFixed(2)}%)`}
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground">
             <CalendarDays className="size-3.5" />
-            <span>{`${rangeStart.toLocaleDateString()} - ${rangeEnd.toLocaleDateString()}`}</span>
+            <span>{`${formatDate(rangeStart)} – ${formatDate(rangeEnd)}`}</span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {rangeAvailability.map(range => (
-            <button
-              key={range.label}
-              type="button"
-              disabled={!range.available}
-              onClick={() => setActiveRange(range.label)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                activeRange === range.label
-                  ? 'border-foreground/20 bg-foreground/10 text-foreground'
-                  : 'border-transparent bg-muted/40 text-muted-foreground hover:bg-muted/70',
-                !range.available && 'cursor-not-allowed opacity-40'
-              )}
-            >
-              {range.label}
-            </button>
-          ))}
         </div>
       </ToolCard.Header>
       <ToolCard.Content>
         <ToolCard.Details className="space-y-4">
-          <div className="rounded-xl border border-border/60 bg-black/30 p-3">
-            <div className="relative">
-              <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
-                <defs>
-                  <linearGradient id={`area-gradient-${asset.assetId}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={positive ? '#22c55e' : '#ef4444'} stopOpacity="0.35" />
-                    <stop offset="100%" stopColor={positive ? '#22c55e' : '#ef4444'} stopOpacity="0.03" />
-                  </linearGradient>
-                </defs>
-                {gridValues.map(grid => (
-                  <g key={grid.y}>
-                    <line
-                      x1={leftPad}
-                      x2={width - rightPad}
-                      y1={grid.y}
-                      y2={grid.y}
-                      stroke="currentColor"
-                      className="text-white/15"
-                      strokeDasharray="4 6"
-                    />
-                    <text x={width - rightPad + 8} y={grid.y + 4} className="fill-muted-foreground text-[11px]">
-                      {formatPrice(grid.value)}
-                    </text>
-                  </g>
-                ))}
-                {areaPath ? <path d={areaPath} fill={`url(#area-gradient-${asset.assetId})`} /> : null}
-                {mainPath ? (
-                  <path
-                    d={mainPath}
-                    fill="none"
-                    stroke={positive ? '#22c55e' : '#ef4444'}
-                    strokeWidth={3}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+          <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={accent} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={accent} stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {gridValues.map(grid => (
+                <g key={grid.y}>
+                  <line
+                    x1={leftPad}
+                    x2={width - rightPad}
+                    y1={grid.y}
+                    y2={grid.y}
+                    stroke="currentColor"
+                    className="text-border/50"
+                    strokeDasharray="3 5"
                   />
-                ) : null}
-              </svg>
-            </div>
+                  <text
+                    x={width - rightPad + 8}
+                    y={grid.y + 4}
+                    className="fill-muted-foreground text-[11px] tabular-nums"
+                  >
+                    {formatPrice(grid.value)}
+                  </text>
+                </g>
+              ))}
+              {areaPath ? <path d={areaPath} fill={`url(#${gradientId})`} /> : null}
+              {mainPath ? (
+                <path
+                  d={mainPath}
+                  fill="none"
+                  stroke={accent}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ) : null}
+            </svg>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <StatItem label="Open" value={`$${formatPrice(startPrice)}`} />
@@ -321,7 +264,7 @@ function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-sm font-medium">{value}</div>
+      <div className="mt-1 text-sm font-medium tabular-nums">{value}</div>
     </div>
   )
 }
