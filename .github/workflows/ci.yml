@@ -36,13 +36,16 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: sola-ai
           SENTRY_PROJECT: sola-ai
+          BUILD_SOURCEMAP: 'true'
         run: |
-          curl -sL https://sentry.io/get-cli/ | bash
+          bun add --global @sentry/cli@2.39.1
+          bun run build
           VERSION=$(sentry-cli releases propose-version)
           sentry-cli releases new "$VERSION"
           sentry-cli releases set-commits "$VERSION" --auto --ignore-missing
           sentry-cli sourcemaps upload --release="$VERSION" apps/sola-ai/dist
           sentry-cli releases finalize "$VERSION"
+          find apps/sola-ai/dist -name '*.map' -delete
 
       - run: bun run type-check
       - run: bun run lint

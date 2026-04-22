@@ -1,5 +1,6 @@
 import type { ChainId } from '@sola-ai/caip'
 import type { EvmSolanaNetwork } from '@sola-ai/types'
+import { fetchWithTimeout } from '@sola-ai/utils'
 
 import { bn, bnOrZero } from '@/lib/bignumber'
 import { calculate24hDelta } from '@/lib/portfolio'
@@ -47,9 +48,10 @@ export async function fetchFullPortfolio(
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/portfolio`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/portfolio`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      timeoutMs: 30_000,
       body: JSON.stringify({ evmAddress, solanaAddress, ...(networks && { networks }) }),
     })
 

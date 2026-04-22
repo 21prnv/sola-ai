@@ -1,7 +1,7 @@
 import { CHAIN_NAMESPACE, fromChainId } from '@sola-ai/caip'
 import type { Network, ParsedTransaction } from '@sola-ai/types'
 import { EVM_SOLANA_NETWORKS, chainIdToNetwork, networkToChainIdMap } from '@sola-ai/types'
-import { getHttpUrlEnvVar } from '@sola-ai/utils'
+import { fetchWithTimeout, getHttpUrlEnvVar } from '@sola-ai/utils'
 
 import type { WalletContext } from '../../utils/walletContextSimple'
 
@@ -89,7 +89,7 @@ async function fetchSingleNetworkHistory(
     if (!cachedData) {
       const url = `${baseUrl}/api/v1/account/${address}/txs?pageSize=50${cursor ? `&cursor=${cursor}` : ''}`
 
-      const response = await fetch(url)
+      const response = await fetchWithTimeout(url, { timeoutMs: 30_000 })
 
       if (!response.ok) {
         throw new Error(`Failed to fetch ${network} transactions: ${response.statusText}`)

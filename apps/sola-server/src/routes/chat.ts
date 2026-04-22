@@ -18,6 +18,14 @@ import { format, getUnixTime } from 'date-fns'
 import type { Context } from 'hono'
 import { z } from 'zod'
 
+import { extractBearerToken, verifyDynamicJwt } from '../lib/dynamicAuth'
+import {
+  sanitizeEvmAddress,
+  sanitizeFreeformText,
+  sanitizeMultichainAddresses,
+  sanitizeSolanaAddress,
+} from '../lib/promptSanitize'
+import { checkRateLimit } from '../lib/rateLimiter'
 import { createResumableStream, registerStream, clearStream } from '../lib/streamRegistry'
 import { CHAIN_ID_TO_NETWORK, VAULT_EVM_CHAIN_IDS } from '../lib/vaultNetworks'
 import { getModel, getProviderName } from '../models'
@@ -79,20 +87,21 @@ function wrapTool<TSchema, TExecute extends (args: never, walletContext?: Wallet
     description: tool.description,
     inputSchema: tool.inputSchema,
     execute: async (args: Parameters<TExecute>[0]) => {
-      console.log(`[Tool:call] ${name}`, JSON.stringify(args))
+      const argKeys = args && typeof args === 'object' ? Object.keys(args as object) : []
+      console.log(`[Tool:call] ${name} keys=[${argKeys.join(',')}]`)
       const start = Date.now()
       try {
         const result = await tool.execute(args, walletContext)
-        console.log(
-          `[Tool:ok] ${name} (${Date.now() - start}ms)`,
-          typeof result === 'object' ? JSON.stringify(result).slice(0, 300) : result
-        )
+        const resultKeys =
+          result && typeof result === 'object'
+            ? Object.keys(result as object)
+                .slice(0, 10)
+                .join(',')
+            : typeof result
+        console.log(`[Tool:ok] ${name} (${Date.now() - start}ms) keys=[${resultKeys}]`)
         return result
       } catch (err) {
-        console.error(`[Tool:error] ${name} (${Date.now() - start}ms)`, {
-          message: err instanceof Error ? err.message : String(err),
-          stack: err instanceof Error ? err.stack : undefined,
-        })
+        console.error(`[Tool:error] ${name} (${Date.now() - start}ms) ${err instanceof Error ? err.name : typeof err}`)
         throw err
       }
     },
@@ -435,94 +444,176 @@ If no route or balance appears: say the chain may need to be connected, the amou
 `
 }
 
+const MAX_MESSAGES = 500
+const MAX_STR_SHORT = 256
+
 const chatRequestSchema = z.object({
-  id: z.string().optional(),
-  messages: z.array(z.record(z.string(), z.unknown())),
-  evmAddress: z.string().optional(),
-  solanaAddress: z.string().optional(),
-  approvedChainIds: z.array(z.string()).optional(),
-  safeAddress: z.string().optional(),
+  id: z.string().max(MAX_STR_SHORT).optional(),
+  messages: z.array(z.record(z.string(), z.unknown())).max(MAX_MESSAGES),
+  evmAddress: z.string().max(MAX_STR_SHORT).optional(),
+  solanaAddress: z.string().max(MAX_STR_SHORT).optional(),
+  approvedChainIds: z.array(z.string().max(MAX_STR_SHORT)).max(64).optional(),
+  safeAddress: z.string().max(MAX_STR_SHORT).optional(),
   safeDeploymentState: z
     .record(
-      z.string(),
+      z.string().max(MAX_STR_SHORT),
       z.object({
         isDeployed: z.boolean(),
         modulesEnabled: z.boolean(),
         domainVerifierSet: z.boolean(),
-        safeAddress: z.string(),
+        safeAddress: z.string().max(MAX_STR_SHORT),
       })
     )
     .optional(),
   knownTransactions: z
     .array(
       z.object({
-        txHash: z.string(),
+        txHash: z.string().max(MAX_STR_SHORT),
         type: z.enum(['swap', 'send', 'limitOrder', 'stopLoss', 'twap', 'deposit', 'withdraw', 'approval']),
-        sellSymbol: z.string().optional(),
-        sellAmount: z.string().optional(),
-        buySymbol: z.string().optional(),
-        buyAmount: z.string().optional(),
-        network: z.string().optional(),
+        sellSymbol: z.string().max(MAX_STR_SHORT).optional(),
+        sellAmount: z.string().max(MAX_STR_SHORT).optional(),
+        buySymbol: z.string().max(MAX_STR_SHORT).optional(),
+        buyAmount: z.string().max(MAX_STR_SHORT).optional(),
+        network: z.string().max(MAX_STR_SHORT).optional(),
       })
     )
+    .max(500)
     .optional(),
-  dynamicMultichainAddresses: z.record(z.string(), z.string()).optional(),
+  dynamicMultichainAddresses: z.record(z.string().max(MAX_STR_SHORT), z.string().max(MAX_STR_SHORT)).optional(),
   contacts: z
     .array(
       z.object({
-        name: z.string(),
-        address: z.string(),
-        network: z.string().optional(),
+        name: z.string().max(MAX_STR_SHORT),
+        address: z.string().max(MAX_STR_SHORT),
+        network: z.string().max(MAX_STR_SHORT).optional(),
       })
     )
+    .max(500)
     .optional(),
   registryOrders: z
     .array(
       z.object({
-        orderHash: z.string(),
+        orderHash: z.string().max(MAX_STR_SHORT),
         chainId: z.number(),
-        sellTokenAddress: z.string(),
-        sellTokenSymbol: z.string(),
-        sellAmountBaseUnit: z.string(),
-        sellAmountHuman: z.string(),
-        buyTokenAddress: z.string(),
-        buyTokenSymbol: z.string(),
-        buyAmountHuman: z.string(),
-        strikePrice: z.string(),
+        sellTokenAddress: z.string().max(MAX_STR_SHORT),
+        sellTokenSymbol: z.string().max(MAX_STR_SHORT),
+        sellAmountBaseUnit: z.string().max(MAX_STR_SHORT),
+        sellAmountHuman: z.string().max(MAX_STR_SHORT),
+        buyTokenAddress: z.string().max(MAX_STR_SHORT),
+        buyTokenSymbol: z.string().max(MAX_STR_SHORT),
+        buyAmountHuman: z.string().max(MAX_STR_SHORT),
+        strikePrice: z.string().max(MAX_STR_SHORT),
         validTo: z.number(),
-        submitTxHash: z.string(),
+        submitTxHash: z.string().max(MAX_STR_SHORT),
         createdAt: z.number(),
-        network: z.string(),
+        network: z.string().max(MAX_STR_SHORT),
         status: z.enum(['open', 'triggered', 'fulfilled', 'cancelled', 'expired', 'failed', 'partiallyFilled']),
         orderType: z.enum(['stopLoss', 'twap']),
         numParts: z.number().optional(),
       })
     )
+    .max(500)
     .optional(),
 })
 
+const RATE_LIMIT_ANON_PER_MIN = 10
+const RATE_LIMIT_AUTH_PER_MIN = 60
+const MAX_OUTPUT_TOKENS = 4096
+
+function clientIp(c: Context): string {
+  const fwd = c.req.header('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0].trim()
+  return c.req.header('x-real-ip') ?? c.req.header('cf-connecting-ip') ?? c.req.header('fly-client-ip') ?? 'unknown'
+}
+
 export async function handleChatRequest(c: Context) {
+  const requestId = crypto.randomUUID()
   try {
     const body = await c.req.json()
     const parsed = chatRequestSchema.safeParse(body)
 
     if (!parsed.success) {
-      return c.json({ error: 'Invalid request body', details: parsed.error.issues }, 400)
+      return c.json({ error: 'Invalid request body', requestId }, 400)
     }
 
     const {
       id: conversationId,
       messages,
-      evmAddress,
-      solanaAddress,
-      approvedChainIds,
+      evmAddress: rawEvmAddress,
+      solanaAddress: rawSolanaAddress,
+      approvedChainIds: rawApprovedChainIds,
       safeAddress,
       safeDeploymentState,
       knownTransactions,
-      contacts,
+      contacts: rawContacts,
       registryOrders,
-      dynamicMultichainAddresses,
+      dynamicMultichainAddresses: rawMultichain,
     } = parsed.data
+
+    // Sanitize every user-controlled field that flows into the prompt OR tool args.
+    const evmAddress = sanitizeEvmAddress(rawEvmAddress)
+    const solanaAddress = sanitizeSolanaAddress(rawSolanaAddress)
+    const rawSanitizedMultichain = sanitizeMultichainAddresses(rawMultichain)
+    const approvedChainIds = rawApprovedChainIds?.filter(id => /^[a-zA-Z0-9_.:-]{1,64}$/.test(id))
+    const contacts = rawContacts
+      ?.map(contact => {
+        const name = sanitizeFreeformText(contact.name, 80)
+        const address = sanitizeFreeformText(contact.address, 128)
+        const network = sanitizeFreeformText(contact.network, 64)
+        if (!name || !address) return null
+        return { name, address, network }
+      })
+      .filter((c): c is { name: string; address: string; network: string | undefined } => c !== null)
+
+    // Verify wallet ownership via the Dynamic-issued JWT. The client forwards
+    // the token in the Authorization header; we verify its signature against
+    // Dynamic's JWKS and then require every claimed address to appear in the
+    // JWT's `verified_credentials`. This blocks address spoofing and — by
+    // keying the rate-limiter to the authenticated subject — prevents anyone
+    // from burning LLM quota on a stranger's tab.
+    const token = extractBearerToken(c.req.header('authorization'))
+    const session = token ? await verifyDynamicJwt(token) : null
+    const verified = session?.verifiedAddresses ?? new Set<string>()
+
+    const assertVerified = (addr: string | undefined, label: string): Response | null => {
+      if (!addr) return null
+      if (!session) {
+        return c.json({ error: `Missing or invalid auth token for claimed ${label}`, requestId }, 401)
+      }
+      if (!verified.has(addr.toLowerCase())) {
+        return c.json({ error: `Claimed ${label} is not verified by auth token`, requestId }, 401)
+      }
+      return null
+    }
+
+    const evmDenied = assertVerified(evmAddress, 'evmAddress')
+    if (evmDenied) return evmDenied
+    const solDenied = assertVerified(solanaAddress, 'solanaAddress')
+    if (solDenied) return solDenied
+
+    // Multichain (BTC/Cosmos/Sui/Tron/Starknet/…): Dynamic issues the JWT so
+    // these addresses are present in verified_credentials too. Keep only the
+    // ones the token confirms; drop the rest so an attacker can't inject an
+    // unrelated address into the prompt or tool context.
+    const dynamicMultichainAddresses = rawSanitizedMultichain
+      ? Object.fromEntries(
+          Object.entries(rawSanitizedMultichain).filter(([, addr]) => {
+            if (!session) return false
+            return verified.has(addr.toLowerCase())
+          })
+        )
+      : undefined
+    const multichainHasEntries = dynamicMultichainAddresses && Object.keys(dynamicMultichainAddresses).length > 0
+
+    const ip = clientIp(c)
+    const rateLimitIdentity = session?.sub ?? evmAddress ?? solanaAddress
+    const rateLimitKey = rateLimitIdentity ? `user:${rateLimitIdentity}` : `ip:${ip}`
+    const rateLimitMax = session ? RATE_LIMIT_AUTH_PER_MIN : RATE_LIMIT_ANON_PER_MIN
+    const rateLimit = checkRateLimit(rateLimitKey, rateLimitMax)
+    if (!rateLimit.ok) {
+      c.header('Retry-After', String(rateLimit.retryAfter))
+      return c.json({ error: 'Rate limit exceeded', requestId }, 429)
+    }
 
     // Build wallet context from addresses (filtered by approved chains if provided)
     const walletContext = buildWalletContextFromChatFields(
@@ -533,14 +624,15 @@ export async function handleChatRequest(c: Context) {
       safeDeploymentState,
       registryOrders,
       knownTransactions,
-      dynamicMultichainAddresses,
+      multichainHasEntries ? dynamicMultichainAddresses : undefined,
       contacts
     )
 
     console.log('[Chat:request]', {
+      requestId,
       conversationId,
-      evmAddress: evmAddress ?? '(none)',
-      solanaAddress: solanaAddress ?? '(none)',
+      evmAddress: evmAddress ? '(authed)' : '(none)',
+      solanaAddress: solanaAddress ? '(present)' : '(none)',
       approvedChainIds: approvedChainIds ?? '(all)',
       connectedWallets: Object.keys(walletContext.connectedWallets ?? {}),
       messageCount: messages.length,
@@ -570,6 +662,7 @@ export async function handleChatRequest(c: Context) {
         dynamicMultichainAddresses
       ),
       temperature: 0.3,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
       stopWhen: stepCountIs(5),
       tools,
       experimental_transform: smoothStream({ chunking: 'word', delayInMs: 3 }),
@@ -650,12 +743,12 @@ export async function handleChatRequest(c: Context) {
       },
     })
   } catch (error) {
-    const errorDetails = {
-      message: error instanceof Error ? error.message : String(error),
+    console.error('[Chat API] Request Error:', {
+      requestId,
       name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-    }
-    console.error('[Chat API] Request Error:', errorDetails)
-    return c.json({ error: 'Internal server error', details: errorDetails.message }, 500)
+    })
+    return c.json({ error: 'Internal server error', requestId }, 500)
   }
 }

@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { useQuery } from '@tanstack/react-query'
 import { Github } from 'lucide-react'
 
@@ -16,7 +17,7 @@ export function GitHubStarsButton() {
   const { data: stars } = useQuery({
     queryKey: ['github-stars', '21prnv/sola-ai'],
     queryFn: async () => {
-      const res = await fetch(API_URL)
+      const res = await fetchWithTimeout(API_URL, { timeoutMs: 5_000 })
       if (!res.ok) throw new Error('Failed to fetch repo')
       const json = (await res.json()) as { stargazers_count: number }
       return json.stargazers_count

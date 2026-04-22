@@ -1,4 +1,5 @@
 import type { InitiateSwapOutput } from '@sola-ai/server'
+import { fetchWithTimeout } from '@sola-ai/utils'
 
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 
@@ -32,9 +33,10 @@ export async function fetchSwapBuild(
   }
 ): Promise<InitiateSwapOutput> {
   const base = getSolaServerBaseUrl()
-  const res = await fetch(`${base}/api/swap/build`, {
+  const res = await fetchWithTimeout(`${base}/api/swap/build`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    timeoutMs: 30_000,
     body: JSON.stringify({
       ...wallet,
       sellAsset: params.sellAsset,

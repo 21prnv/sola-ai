@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Execution } from '@/components/Execution'
 import { Button } from '@/components/ui/Button'
+import { SafeImage } from '@/components/ui/SafeImage'
 import { useWalletConnection } from '@/hooks/useWalletConnection'
 import { bnOrZero } from '@/lib/bignumber'
 import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallets'
@@ -518,17 +519,16 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
 
                             <div className="flex items-center gap-2 px-3 py-4 sm:gap-3">
                               <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-                                {routeCtx.sellAsset.icon ? (
-                                  <img
-                                    src={routeCtx.sellAsset.icon}
-                                    alt=""
-                                    className="size-9 rounded-full bg-muted object-contain ring-1 ring-border"
-                                  />
-                                ) : (
-                                  <div className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-bold ring-1 ring-border">
-                                    {routeCtx.sellAsset.symbol.slice(0, 1).toUpperCase()}
-                                  </div>
-                                )}
+                                <SafeImage
+                                  src={routeCtx.sellAsset.icon}
+                                  alt=""
+                                  className="size-9 rounded-full bg-muted object-contain ring-1 ring-border"
+                                  fallback={
+                                    <div className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-bold ring-1 ring-border">
+                                      {routeCtx.sellAsset.symbol.slice(0, 1).toUpperCase()}
+                                    </div>
+                                  }
+                                />
                                 <div className="min-w-0 max-w-full text-center">
                                   <div className="break-all text-sm font-semibold tabular-nums leading-tight sm:text-base">
                                     <span>{routeCtx.sellAmountCrypto}</span>
@@ -547,17 +547,16 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                               <div className="relative flex min-w-18 shrink-0 flex-col items-center px-1">
                                 <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-t border-dashed border-muted-foreground/35" />
                                 <div className="relative z-1 flex flex-col items-center gap-1 rounded-lg bg-whiteAlpha-50/80 px-1 backdrop-blur-sm">
-                                  {opt.swapperLogo ? (
-                                    <img
-                                      src={opt.swapperLogo}
-                                      alt=""
-                                      className="size-8 rounded-lg bg-background object-contain ring-1 ring-border"
-                                    />
-                                  ) : (
-                                    <div className="flex size-8 items-center justify-center rounded-lg bg-muted text-[10px] font-semibold ring-1 ring-border">
-                                      R
-                                    </div>
-                                  )}
+                                  <SafeImage
+                                    src={opt.swapperLogo}
+                                    alt=""
+                                    className="size-8 rounded-lg bg-background object-contain ring-1 ring-border"
+                                    fallback={
+                                      <div className="flex size-8 items-center justify-center rounded-lg bg-muted text-[10px] font-semibold ring-1 ring-border">
+                                        R
+                                      </div>
+                                    }
+                                  />
                                   <span className="max-w-22 truncate text-center text-[11px] font-medium leading-tight text-foreground">
                                     {opt.swapperTitle}
                                   </span>
@@ -565,17 +564,16 @@ export function InitiateSwapUI({ toolPart }: ToolUIComponentProps<'initiateSwapT
                               </div>
 
                               <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-                                {routeCtx.buyAsset.icon ? (
-                                  <img
-                                    src={routeCtx.buyAsset.icon}
-                                    alt=""
-                                    className="size-9 rounded-full bg-muted object-contain ring-1 ring-border"
-                                  />
-                                ) : (
-                                  <div className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-bold ring-1 ring-border">
-                                    {routeCtx.buyAsset.symbol.slice(0, 1).toUpperCase()}
-                                  </div>
-                                )}
+                                <SafeImage
+                                  src={routeCtx.buyAsset.icon}
+                                  alt=""
+                                  className="size-9 rounded-full bg-muted object-contain ring-1 ring-border"
+                                  fallback={
+                                    <div className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-bold ring-1 ring-border">
+                                      {routeCtx.buyAsset.symbol.slice(0, 1).toUpperCase()}
+                                    </div>
+                                  }
+                                />
                                 <div className="min-w-0 max-w-full text-center">
                                   <div className="break-all text-sm font-semibold tabular-nums leading-tight sm:text-base">
                                     <Amount.Crypto

@@ -11,8 +11,15 @@ import { POLYGON_CAIP_CHAIN_ID, POLYMARKET_CONTRACTS, USDC_DECIMALS } from './co
 export const approvePolymarketUsdcSchema = z.object({
   amount: z
     .string()
+    .describe(
+      'Human-readable USDC amount to approve (e.g. "500"). Defaults to a bounded amount; set `unlimited: true` only when the user explicitly asks for infinite approval.'
+    ),
+  unlimited: z
+    .boolean()
     .optional()
-    .describe('Human-readable USDC amount to approve (e.g. "500"). Omit for unlimited approval.'),
+    .describe(
+      'Set true ONLY if the user explicitly requested an unlimited / infinite approval. If omitted, the tool approves exactly `amount` USDC.'
+    ),
   negRisk: z
     .boolean()
     .optional()
@@ -39,8 +46,12 @@ export async function executeApprovePolymarketUsdc(
   const fromAddress = getAddressForChain(walletContext, POLYGON_CAIP_CHAIN_ID)
   const spender = input.negRisk ? POLYMARKET_CONTRACTS.negRiskCtfExchange : POLYMARKET_CONTRACTS.ctfExchange
 
-  const unlimited = !input.amount
-  const amountBaseUnits = unlimited ? maxUint256 : BigInt(Math.floor(Number(input.amount) * 10 ** USDC_DECIMALS))
+  const parsedAmount = Number(input.amount)
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    throw new Error('approvePolymarketUsdc: amount must be a positive number (e.g. "500")')
+  }
+  const unlimited = input.unlimited === true
+  const amountBaseUnits = unlimited ? maxUint256 : BigInt(Math.floor(parsedAmount * 10 ** USDC_DECIMALS))
 
   const data = encodeFunctionData({
     abi: erc20Abi,
@@ -59,7 +70,7 @@ export async function executeApprovePolymarketUsdc(
   return {
     summary: {
       spender,
-      amount: unlimited ? 'unlimited' : (input.amount ?? '0'),
+      amount: unlimited ? 'unlimited' : input.amount,
       unlimited,
       network: 'Polygon',
       fromAddress,
@@ -72,6 +83,8 @@ export const approvePolymarketUsdcTool = {
   description: `Approve the Polymarket CTF Exchange to spend your USDC on Polygon. Required once before placing any Polymarket order.
 
 Returns an unsigned approval transaction to be signed and submitted by the connected Polygon wallet.
+
+\`amount\` is REQUIRED. Approve only as much as the user intends to trade (default to a small bounded amount, e.g. their order size plus a small buffer). Never pass \`unlimited: true\` unless the user explicitly asks for an unlimited/infinite approval.
 
 UI CARD DISPLAYS: spender contract, approval amount, source wallet.`,
   inputSchema: approvePolymarketUsdcSchema,

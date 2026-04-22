@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { z } from 'zod'
 
 import { getAddressForChain } from '../../utils/walletContextSimple'
@@ -81,7 +82,7 @@ export async function executeGetPolymarketPositions(
   params.set('sizeThreshold', String(sizeThreshold))
   params.set('limit', String(limit))
 
-  const res = await fetch(`${DATA_API_BASE}/positions?${params.toString()}`, {
+  const res = await fetchWithTimeout(`${DATA_API_BASE}/positions?${params.toString()}`, {
     headers: { accept: 'application/json' },
   })
   if (!res.ok) {

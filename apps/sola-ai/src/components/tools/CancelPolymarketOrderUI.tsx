@@ -37,7 +37,7 @@ export function CancelPolymarketOrderUI({ toolPart }: ToolUIComponentProps<'canc
 
   async function run(data: CancelPolymarketOrderOutput) {
     try {
-      const creds = loadPolymarketCreds(data.owner)
+      const creds = await loadPolymarketCreds(data.owner)
       if (!creds) {
         setStatus('no-creds')
         setErrorMessage('No Polymarket API credentials. Register first.')

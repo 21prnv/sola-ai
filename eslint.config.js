@@ -16,6 +16,7 @@ export default tseslint.config(
       '**/*.d.ts',
       '**/tailwind.config.js',
       '**/postcss.config.js',
+      '**/public/**',
     ],
   },
   eslint.configs.recommended,
@@ -43,6 +44,10 @@ export default tseslint.config(
     },
     rules: {
       ...prettierConfig.rules,
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-script-url': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -96,6 +101,8 @@ export default tseslint.config(
       'react/jsx-no-target-blank': 'error',
       'react/jsx-key': 'error',
       'react/self-closing-comp': 'error',
+      'react/no-danger': 'error',
+      'react/no-danger-with-children': 'error',
     },
   },
   {

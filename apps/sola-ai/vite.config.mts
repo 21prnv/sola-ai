@@ -40,7 +40,9 @@ export default defineConfig(() => ({
     emptyOutDir: true,
     // Skip gzip reporting to reduce peak memory on large dependency graphs.
     reportCompressedSize: false,
-    sourcemap: true,
+    // Emit sourcemaps only when explicitly requested (e.g. local prod builds,
+    // CI sourcemap upload step). Never ship them with the served bundle.
+    sourcemap: process.env.BUILD_SOURCEMAP === 'true' ? 'hidden' : false,
     commonjsOptions: {
       transformMixedEsModules: true,
     },

@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { z } from 'zod'
 
 const CLOB_BASE_URL = 'https://clob.polymarket.com'
@@ -44,7 +45,7 @@ export async function executeGetPolymarketPrice(input: GetPolymarketPriceInput):
   const depth = input.depth ?? 3
 
   const url = `${CLOB_BASE_URL}/book?token_id=${encodeURIComponent(input.tokenId)}`
-  const res = await fetch(url, { headers: { accept: 'application/json' } })
+  const res = await fetchWithTimeout(url, { headers: { accept: 'application/json' } })
   if (!res.ok) {
     throw new Error(`Polymarket CLOB API error: ${res.status} ${res.statusText}`)
   }

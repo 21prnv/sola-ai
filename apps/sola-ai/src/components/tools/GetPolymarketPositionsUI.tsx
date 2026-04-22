@@ -1,5 +1,6 @@
 import { Briefcase } from 'lucide-react'
 
+import { SafeImage } from '../ui/SafeImage'
 import { ToolCard } from '../ui/ToolCard'
 
 import { useToolStateRender } from './toolUIHelpers'
@@ -65,11 +66,12 @@ export function GetPolymarketPositionsUI({ toolPart }: ToolUIComponentProps<'get
             <div className="divide-y divide-border">
               {positions.map(p => (
                 <div key={p.tokenId || p.conditionId} className="py-2 flex gap-3 items-start">
-                  {p.icon ? (
-                    <img src={p.icon} alt="" className="w-8 h-8 rounded shrink-0 object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded bg-muted shrink-0" />
-                  )}
+                  <SafeImage
+                    src={p.icon}
+                    alt=""
+                    className="w-8 h-8 rounded shrink-0 object-cover"
+                    fallback={<div className="w-8 h-8 rounded bg-muted shrink-0" />}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm line-clamp-2">{p.title}</div>
                     <div className="text-xs text-muted-foreground flex gap-2 mt-0.5">
