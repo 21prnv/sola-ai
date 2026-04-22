@@ -35,7 +35,7 @@ export function GetPolymarketOrdersUI({ toolPart }: ToolUIComponentProps<'getPol
 
   async function run(data: GetPolymarketOrdersOutput) {
     try {
-      const creds = loadPolymarketCreds(data.owner)
+      const creds = await loadPolymarketCreds(data.owner)
       if (!creds) {
         setStatus('no-creds')
         setErrorMessage('No Polymarket API credentials. Register first.')
@@ -57,7 +57,7 @@ export function GetPolymarketOrdersUI({ toolPart }: ToolUIComponentProps<'getPol
 
   async function handleCancel(orderId: string) {
     if (!output) return
-    const creds = loadPolymarketCreds(output.owner)
+    const creds = await loadPolymarketCreds(output.owner)
     if (!creds) return
     setCancellingId(orderId)
     try {

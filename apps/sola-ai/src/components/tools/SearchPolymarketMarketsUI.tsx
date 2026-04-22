@@ -1,5 +1,6 @@
 import { TrendingUp } from 'lucide-react'
 
+import { SafeImage } from '../ui/SafeImage'
 import { ToolCard } from '../ui/ToolCard'
 
 import { useToolStateRender } from './toolUIHelpers'
@@ -40,11 +41,12 @@ export function SearchPolymarketMarketsUI({ toolPart }: ToolUIComponentProps<'se
             {markets.map(m => (
               <div key={m.id || m.slug} className="py-3 px-1">
                 <div className="flex items-start gap-3">
-                  {m.image ? (
-                    <img src={m.image} alt="" className="w-10 h-10 rounded shrink-0 object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded bg-muted shrink-0" />
-                  )}
+                  <SafeImage
+                    src={m.image}
+                    alt=""
+                    className="w-10 h-10 rounded shrink-0 object-cover"
+                    fallback={<div className="w-10 h-10 rounded bg-muted shrink-0" />}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium line-clamp-2">{m.question}</div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">

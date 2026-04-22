@@ -37,6 +37,7 @@
     "date-fns": "^4.1.0",
     "expr-eval": "^2.0.2",
     "hono": "^4.10.6",
+    "jose": "^6.2.2",
     "lodash": "^4.17.21",
     "rango-sdk-basic": "^0.1.74",
     "rango-types": "^0.1.95",

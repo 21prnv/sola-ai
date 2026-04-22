@@ -33,6 +33,7 @@ export * from './getAssetNamespaceFromChainId.js'
 export * from './viem.js'
 export * from './networkIcons.js'
 export * from './retry.js'
+export * from './fetchWithTimeout.js'
 export * from './number.js'
 export { AssetService } from './AssetService.js'
 

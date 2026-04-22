@@ -40,7 +40,7 @@ export function BuildPolymarketOrderUI({ toolPart }: ToolUIComponentProps<'build
 
   async function run(data: BuildPolymarketOrderOutput) {
     try {
-      const creds = loadPolymarketCreds(data.summary.maker)
+      const creds = await loadPolymarketCreds(data.summary.maker)
       if (!creds) {
         setStatus('no-creds')
         setErrorMessage('No Polymarket API credentials found. Register first.')

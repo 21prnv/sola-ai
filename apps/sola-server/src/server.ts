@@ -39,6 +39,8 @@ app.use(
       'https://solaai.in',
     ],
     credentials: true,
+    allowHeaders: ['Authorization', 'Content-Type'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
   })
 )
 
@@ -59,8 +61,9 @@ app.notFound(c => {
 })
 
 app.onError((err, c) => {
-  console.error('[Server Error]:', err)
-  return c.json({ error: 'Internal server error', message: err.message }, 500)
+  const errorId = crypto.randomUUID()
+  console.error('[Server Error]:', { errorId, name: err.name, message: err.message, stack: err.stack })
+  return c.json({ error: 'Internal server error', errorId }, 500)
 })
 
 const port = Number(process.env.PORT) || 8787

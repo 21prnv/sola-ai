@@ -1,7 +1,17 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { cancelOrders, fetchOpenOrders, loadPolymarketCreds } from '@/lib/polymarketAuth'
 import type { ClobOpenOrder, PolymarketCreds } from '@/lib/polymarketAuth'
+
+export function usePolymarketCreds(address: string | undefined) {
+  return useQuery({
+    queryKey: ['polymarket', 'creds', address?.toLowerCase()],
+    queryFn: () => loadPolymarketCreds(address!),
+    enabled: !!address,
+    staleTime: Infinity,
+  })
+}
 
 const DATA_API_BASE = 'https://data-api.polymarket.com'
 
@@ -53,7 +63,7 @@ async function fetchPositions(address: string): Promise<PolymarketPosition[]> {
   params.set('sizeThreshold', '1')
   params.set('limit', '100')
 
-  const res = await fetch(`${DATA_API_BASE}/positions?${params.toString()}`, {
+  const res = await fetchWithTimeout(`${DATA_API_BASE}/positions?${params.toString()}`, {
     headers: { accept: 'application/json' },
   })
   if (!res.ok) throw new Error(`Positions error: ${res.status}`)
@@ -97,7 +107,8 @@ export function usePolymarketOpenOrders(address: string | undefined): {
   error: unknown
   refetch: () => void
 } {
-  const creds = address ? loadPolymarketCreds(address) : null
+  const credsQuery = usePolymarketCreds(address)
+  const creds = credsQuery.data ?? null
   const q = useQuery({
     queryKey: ['polymarket', 'orders', address?.toLowerCase()],
     queryFn: () => fetchOpenOrders({ creds: creds!, address: address! }),
@@ -109,7 +120,7 @@ export function usePolymarketOpenOrders(address: string | undefined): {
   return {
     creds,
     data: q.data,
-    isLoading: q.isLoading,
+    isLoading: credsQuery.isLoading || q.isLoading,
     isError: q.isError,
     error: q.error,
     refetch: () => void q.refetch(),

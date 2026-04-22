@@ -1,5 +1,5 @@
 import { useChat } from '@ai-sdk/react'
-import { useUserWallets } from '@dynamic-labs/sdk-react-core'
+import { getAuthToken, useUserWallets } from '@dynamic-labs/sdk-react-core'
 import { DefaultChatTransport, isToolOrDynamicToolUIPart } from 'ai'
 import type { UIMessage } from 'ai'
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -10,6 +10,7 @@ import { getActiveStream, markStreamingActive, markStreamingDone } from '@/hooks
 import { useWalletConnection } from '@/hooks/useWalletConnection'
 import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallets'
 import { analytics } from '@/lib/mixpanel'
+import { clearAllPolymarketCreds } from '@/lib/polymarketAuth'
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
 import { useChatStore, MAX_MESSAGES_PER_CONVERSATION } from '@/stores/chatStore'
 import { useContactStore } from '@/stores/contactStore'
@@ -78,6 +79,15 @@ export function ChatProvider({ children }: ChatProviderProps) {
     () =>
       new DefaultChatTransport({
         api: `${getSolaServerBaseUrl()}/api/chat`,
+        // Forward the Dynamic-issued JWT so the server can verify that the
+        // claimed wallet addresses actually belong to this user. `getAuthToken`
+        // is sync: if the user hasn't authenticated yet it returns undefined,
+        // in which case the request is treated as anonymous (stricter rate
+        // limits) and any claimed addresses are rejected.
+        headers: (): Record<string, string> => {
+          const token = getAuthToken()
+          return token ? { Authorization: `Bearer ${token}` } : {}
+        },
         body: () => {
           const wallet = walletRef.current
           const safeDeploymentEntries = Object.entries(wallet.safeDeploymentState ?? {})
@@ -149,6 +159,19 @@ export function ChatProvider({ children }: ChatProviderProps) {
       markStreamingDone()
     }
   }, [chat.status, urlConversationId])
+
+  // Clear per-wallet secrets when the EVM wallet disconnects or changes. This
+  // prevents the next user on a shared device from inheriting the previous
+  // session's Polymarket CLOB credentials or cached auth proof.
+  const lastEvmAddressRef = useRef<string | undefined>(wallet.evmAddress)
+  useEffect(() => {
+    const previous = lastEvmAddressRef.current
+    const current = wallet.evmAddress
+    lastEvmAddressRef.current = current
+    if (previous && previous !== current) {
+      void clearAllPolymarketCreds()
+    }
+  }, [wallet.evmAddress])
 
   useEffect(() => {
     if (resumeAttemptedRef.current) return

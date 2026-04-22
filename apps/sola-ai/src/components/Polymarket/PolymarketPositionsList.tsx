@@ -2,6 +2,8 @@ import { Briefcase } from 'lucide-react'
 
 import { usePolymarketPositions } from '@/hooks/usePolymarketQueries'
 
+import { SafeImage } from '../ui/SafeImage'
+
 function fmtUsd(value: number): string {
   const sign = value < 0 ? '-' : ''
   return `${sign}$${Math.abs(value).toFixed(2)}`
@@ -70,11 +72,12 @@ export function PolymarketPositionsList({ address }: { address: string | undefin
           <div className="divide-y divide-border">
             {positions.map(p => (
               <div key={p.tokenId || p.conditionId} className="px-4 py-3 flex gap-3 items-start">
-                {p.icon ? (
-                  <img src={p.icon} alt="" className="w-9 h-9 rounded shrink-0 object-cover" />
-                ) : (
-                  <div className="w-9 h-9 rounded bg-muted shrink-0" />
-                )}
+                <SafeImage
+                  src={p.icon}
+                  alt=""
+                  className="w-9 h-9 rounded shrink-0 object-cover"
+                  fallback={<div className="w-9 h-9 rounded bg-muted shrink-0" />}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm line-clamp-2">{p.title}</div>
                   <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 mt-0.5">

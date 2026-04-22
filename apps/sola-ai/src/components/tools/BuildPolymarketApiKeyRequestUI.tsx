@@ -40,7 +40,7 @@ export function BuildPolymarketApiKeyRequestUI({ toolPart }: ToolUIComponentProp
   async function run(data: BuildPolymarketApiKeyRequestOutput) {
     try {
       setStatus('checking')
-      const existing = loadPolymarketCreds(data.address)
+      const existing = await loadPolymarketCreds(data.address)
       if (existing) {
         setShortApiKey(firstFourLastFour(existing.apiKey))
         setStatus('already-registered')
@@ -59,7 +59,7 @@ export function BuildPolymarketApiKeyRequestUI({ toolPart }: ToolUIComponentProp
         timestamp: data.timestamp,
         nonce: data.nonce,
       })
-      savePolymarketCreds(data.address, creds)
+      await savePolymarketCreds(data.address, creds)
       setShortApiKey(firstFourLastFour(creds.apiKey))
       setStatus('success')
     } catch (err) {

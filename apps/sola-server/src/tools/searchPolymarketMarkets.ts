@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { z } from 'zod'
 
 const GAMMA_BASE_URL = 'https://gamma-api.polymarket.com'
@@ -104,7 +105,7 @@ export async function executeSearchPolymarketMarkets(
   if (input.query) params.set('search', input.query)
 
   const url = `${GAMMA_BASE_URL}/markets?${params.toString()}`
-  const res = await fetch(url, { headers: { accept: 'application/json' } })
+  const res = await fetchWithTimeout(url, { headers: { accept: 'application/json' } })
   if (!res.ok) {
     throw new Error(`Polymarket Gamma API error: ${res.status} ${res.statusText}`)
   }

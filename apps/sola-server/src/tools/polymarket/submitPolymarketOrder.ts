@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { z } from 'zod'
 
 import { CLOB_BASE_URL } from './constants'
@@ -83,7 +84,7 @@ export async function executeSubmitPolymarketOrder(
     }),
   }
 
-  const res = await fetch(`${CLOB_BASE_URL}/order`, {
+  const res = await fetchWithTimeout(`${CLOB_BASE_URL}/order`, {
     method: 'POST',
     headers,
     body,

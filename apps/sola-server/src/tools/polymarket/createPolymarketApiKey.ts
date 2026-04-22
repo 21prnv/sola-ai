@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '@sola-ai/utils'
 import { z } from 'zod'
 
 import { CLOB_BASE_URL } from './constants'
@@ -44,7 +45,7 @@ export async function executeCreatePolymarketApiKey(
   }
 
   const path = input.derive ? '/auth/derive-api-key' : '/auth/api-key'
-  const res = await fetch(`${CLOB_BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${CLOB_BASE_URL}${path}`, {
     method: input.derive ? 'GET' : 'POST',
     headers,
   })
