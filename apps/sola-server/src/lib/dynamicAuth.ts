@@ -32,12 +32,6 @@ export type DynamicSession = {
   verifiedAddresses: Set<string>
 }
 
-/**
- * Verify a Dynamic-issued JWT against the tenant's JWKS. On success returns
- * the session subject (user id) and a lower-cased set of every address the
- * JWT claims the user owns. On any failure (expired, bad signature, wrong
- * issuer, network error fetching JWKS) returns null.
- */
 export async function verifyDynamicJwt(token: string): Promise<DynamicSession | null> {
   if (!jwks) return null
   try {

@@ -550,7 +550,6 @@ export async function handleChatRequest(c: Context) {
       dynamicMultichainAddresses: rawMultichain,
     } = parsed.data
 
-    // Sanitize every user-controlled field that flows into the prompt OR tool args.
     const evmAddress = sanitizeEvmAddress(rawEvmAddress)
     const solanaAddress = sanitizeSolanaAddress(rawSolanaAddress)
     const rawSanitizedMultichain = sanitizeMultichainAddresses(rawMultichain)
@@ -565,12 +564,6 @@ export async function handleChatRequest(c: Context) {
       })
       .filter((c): c is { name: string; address: string; network: string | undefined } => c !== null)
 
-    // Verify wallet ownership via the Dynamic-issued JWT. The client forwards
-    // the token in the Authorization header; we verify its signature against
-    // Dynamic's JWKS and then require every claimed address to appear in the
-    // JWT's `verified_credentials`. This blocks address spoofing and — by
-    // keying the rate-limiter to the authenticated subject — prevents anyone
-    // from burning LLM quota on a stranger's tab.
     const token = extractBearerToken(c.req.header('authorization'))
     const session = token ? await verifyDynamicJwt(token) : null
     const verified = session?.verifiedAddresses ?? new Set<string>()
@@ -591,10 +584,6 @@ export async function handleChatRequest(c: Context) {
     const solDenied = assertVerified(solanaAddress, 'solanaAddress')
     if (solDenied) return solDenied
 
-    // Multichain (BTC/Cosmos/Sui/Tron/Starknet/…): Dynamic issues the JWT so
-    // these addresses are present in verified_credentials too. Keep only the
-    // ones the token confirms; drop the rest so an attacker can't inject an
-    // unrelated address into the prompt or tool context.
     const dynamicMultichainAddresses = rawSanitizedMultichain
       ? Object.fromEntries(
           Object.entries(rawSanitizedMultichain).filter(([, addr]) => {
@@ -615,7 +604,6 @@ export async function handleChatRequest(c: Context) {
       return c.json({ error: 'Rate limit exceeded', requestId }, 429)
     }
 
-    // Build wallet context from addresses (filtered by approved chains if provided)
     const walletContext = buildWalletContextFromChatFields(
       evmAddress,
       solanaAddress,
@@ -642,14 +630,6 @@ export async function handleChatRequest(c: Context) {
 
     const model = getModel()
     const tools = buildTools(walletContext)
-    console.log(
-      '[Chat:stream] model:',
-      (model as any).modelId ?? 'unknown',
-      '| tools:',
-      Object.keys(tools).length,
-      '→',
-      Object.keys(tools).join(', ')
-    )
 
     const result = streamText({
       model,
