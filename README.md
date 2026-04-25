@@ -2,6 +2,8 @@
 
 AI for your wallets. Chat your way across chains — portfolios, swaps, sends, prediction markets, and vaults, all from one conversation.
 
+Sola-AI turns a multi-chain wallet into a conversational interface. Instead of juggling separate tabs for a portfolio tracker, a DEX aggregator, a gas tracker, a prediction-market UI, and a yield vault, you describe what you want and the LLM picks the right tool, builds the transaction, and hands it back to your wallet to sign. Private keys never leave the browser — the server only ever sees public addresses.
+
 Built by [prnv](https://x.com/21prnv).
 
 ---
@@ -44,6 +46,34 @@ Built by [prnv](https://x.com/21prnv).
 - Zustand + IndexedDB conversation persistence
 - Dynamic Labs multi-chain wallet connect (EVM + Solana)
 - Sentry error tracking + source-map uploads on `main`
+
+---
+
+## How it works
+
+The server is non-custodial. It receives the connected addresses and a [Dynamic](https://www.dynamic.xyz/)-issued JWT proving ownership of them; it uses those addresses to read on-chain state, quote prices, and **build unsigned transactions**. Every signature — EVM transaction, Solana transaction, or EIP-712 typed data — is produced by the user's wallet in the browser and submitted from the client.
+
+The LLM is wired up with a registry of **tools** — one TypeScript function per capability (get portfolio, build a swap, place a Polymarket order, list open orders, etc.). Each tool has a matching React card that renders its result and handles any signing it needs. When the LLM decides to call a tool, the result streams into the chat as a typed, interactive card.
+
+Three rough categories of tools:
+
+1. **Read-only** (prices, portfolio, history, gas tracker) — the server returns data, the card displays it.
+2. **Transaction-building** (send, swap, vault deposit, USDC approve) — the server returns a `TransactionData` struct, the card asks the wallet to sign and submit.
+3. **EIP-712 signing** (Polymarket CLOB order, CLOB API-key registration) — the server returns typed data, the wallet signs, the client POSTs the signed payload to the relevant API.
+
+Conversation history is stored locally in IndexedDB, keyed by wallet, so switching wallets gives you separate chat histories and clearing browser storage clears everything — no server-side conversation database.
+
+---
+
+## Security
+
+- **Non-custodial by design.** The backend has no access to private keys, seed phrases, or signing material. It only sees public addresses.
+- **Wallet-ownership verification.** Every `/api/chat` request carries a Dynamic-issued JWT. The server fetches the tenant's JWKS, verifies the signature, and requires every claimed address (EVM, Solana, multichain) to appear in the JWT's `verified_credentials`. Requests claiming addresses the token doesn't authorize are rejected with 401.
+- **Rate limiting.** 60 authenticated requests per minute per user (keyed by the JWT subject), 10 per minute per IP for unauthenticated traffic.
+- **Prompt-injection hardening.** Every user-controlled field that reaches the LLM or a tool argument — contact names, token symbols, chain IDs, addresses — is sanitized (control chars, tag delimiters and backticks stripped; per-field length caps; stricter regex for addresses and chain IDs).
+- **Output caps.** `maxOutputTokens` on the chat route bounds per-request LLM spend.
+- **Client hardening.** The frontend ships a Content-Security-Policy meta tag and a `SafeImage` wrapper so malformed or malicious external asset URLs can't cascade. All outbound `fetch` calls go through a `fetchWithTimeout` helper.
+- **Polymarket credentials stay local.** CLOB API keys are kept in browser `localStorage` keyed by the lower-cased wallet address. Switching browsers or clearing storage means re-signing the ClobAuth — there is no server-side persistence of CLOB creds.
 
 ---
 
@@ -177,4 +207,4 @@ Railway's auto-deploy is turned off for both services; the GitHub Action is the 
 
 ## License
 
-See [LICENSE](./LICENSE).
+See [LICENSE](./LICENSE). Portions derived from [shapeshift](https://github.com/shapeshift) remain under their original.
