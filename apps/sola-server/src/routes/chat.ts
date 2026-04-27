@@ -27,6 +27,7 @@ import {
 } from '../lib/promptSanitize'
 import { checkRateLimit } from '../lib/rateLimiter'
 import { createResumableStream, registerStream, clearStream } from '../lib/streamRegistry'
+import { verifyTurnstileToken } from '../lib/turnstile'
 import { CHAIN_ID_TO_NETWORK, VAULT_EVM_CHAIN_IDS } from '../lib/vaultNetworks'
 import { getModel, getProviderName } from '../models'
 import { checkWalletCapabilitiesTool } from '../tools/checkWalletCapabilities'
@@ -514,6 +515,7 @@ const chatRequestSchema = z.object({
     )
     .max(500)
     .optional(),
+  turnstileToken: z.string().max(4096).optional(),
 })
 
 const RATE_LIMIT_ANON_PER_MIN = 10
@@ -548,10 +550,11 @@ export async function handleChatRequest(c: Context) {
       contacts: rawContacts,
       registryOrders,
       dynamicMultichainAddresses: rawMultichain,
+      turnstileToken,
     } = parsed.data
 
-    const evmAddress = sanitizeEvmAddress(rawEvmAddress)
-    const solanaAddress = sanitizeSolanaAddress(rawSolanaAddress)
+    const claimedEvm = sanitizeEvmAddress(rawEvmAddress)
+    const claimedSolana = sanitizeSolanaAddress(rawSolanaAddress)
     const rawSanitizedMultichain = sanitizeMultichainAddresses(rawMultichain)
     const approvedChainIds = rawApprovedChainIds?.filter(id => /^[a-zA-Z0-9_.:-]{1,64}$/.test(id))
     const contacts = rawContacts
@@ -568,21 +571,21 @@ export async function handleChatRequest(c: Context) {
     const session = token ? await verifyDynamicJwt(token) : null
     const verified = session?.verifiedAddresses ?? new Set<string>()
 
-    const assertVerified = (addr: string | undefined, label: string): Response | null => {
-      if (!addr) return null
-      if (!session) {
-        return c.json({ error: `Missing or invalid auth token for claimed ${label}`, requestId }, 401)
-      }
-      if (!verified.has(addr.toLowerCase())) {
-        return c.json({ error: `Claimed ${label} is not verified by auth token`, requestId }, 401)
-      }
-      return null
-    }
+    // Address claims are only honored when the Dynamic JWT proves them. Without
+    // a valid session we silently drop the addresses and proceed anonymously —
+    // wallet-context tools just won't be available. Bot abuse is gated below
+    // by Turnstile rather than by requiring a wallet.
+    const ip = clientIp(c)
+    const isVerified = (addr: string | undefined) => !!addr && verified.has(addr.toLowerCase())
+    const evmAddress = isVerified(claimedEvm) ? claimedEvm : undefined
+    const solanaAddress = isVerified(claimedSolana) ? claimedSolana : undefined
 
-    const evmDenied = assertVerified(evmAddress, 'evmAddress')
-    if (evmDenied) return evmDenied
-    const solDenied = assertVerified(solanaAddress, 'solanaAddress')
-    if (solDenied) return solDenied
+    if (!session) {
+      const turnstile = await verifyTurnstileToken(turnstileToken, ip)
+      if (!turnstile.ok) {
+        return c.json({ error: 'Bot check failed', reason: turnstile.reason, requestId }, 401)
+      }
+    }
 
     const dynamicMultichainAddresses = rawSanitizedMultichain
       ? Object.fromEntries(
@@ -594,7 +597,6 @@ export async function handleChatRequest(c: Context) {
       : undefined
     const multichainHasEntries = dynamicMultichainAddresses && Object.keys(dynamicMultichainAddresses).length > 0
 
-    const ip = clientIp(c)
     const rateLimitIdentity = session?.sub ?? evmAddress ?? solanaAddress
     const rateLimitKey = rateLimitIdentity ? `user:${rateLimitIdentity}` : `ip:${ip}`
     const rateLimitMax = session ? RATE_LIMIT_AUTH_PER_MIN : RATE_LIMIT_ANON_PER_MIN

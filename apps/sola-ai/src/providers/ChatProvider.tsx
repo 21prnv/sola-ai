@@ -12,6 +12,7 @@ import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallet
 import { analytics } from '@/lib/mixpanel'
 import { clearAllPolymarketCreds } from '@/lib/polymarketAuth'
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
+import { getTurnstileToken, initTurnstile } from '@/lib/turnstile'
 import { useChatStore, MAX_MESSAGES_PER_CONVERSATION } from '@/stores/chatStore'
 import { useContactStore } from '@/stores/contactStore'
 import { useOrderStore } from '@/stores/orderStore'
@@ -82,13 +83,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
         // Forward the Dynamic-issued JWT so the server can verify that the
         // claimed wallet addresses actually belong to this user. `getAuthToken`
         // is sync: if the user hasn't authenticated yet it returns undefined,
-        // in which case the request is treated as anonymous (stricter rate
-        // limits) and any claimed addresses are rejected.
+        // and the server treats the request as anonymous — bot abuse is gated
+        // by the Turnstile token attached in `body` instead.
         headers: (): Record<string, string> => {
           const token = getAuthToken()
           return token ? { Authorization: `Bearer ${token}` } : {}
         },
-        body: () => {
+        body: async () => {
           const wallet = walletRef.current
           const safeDeploymentEntries = Object.entries(wallet.safeDeploymentState ?? {})
           const safeAddresses = safeDeploymentEntries.filter(([, s]) => s.safeAddress).map(([, s]) => s.safeAddress)
@@ -98,6 +99,12 @@ export function ChatProvider({ children }: ChatProviderProps) {
           const knownTransactions = useChatStore.getState().getKnownTransactions()
           const contacts = useContactStore.getState().contacts
           const dynamicMultichainAddresses = collectDynamicMultichainAddresses(userWalletsRef.current)
+
+          // Only fetch a Turnstile token when the user isn't authenticated via
+          // Dynamic — the JWT itself proves a real signed-in session, so the
+          // server skips the bot-check in that case.
+          const hasAuthToken = !!getAuthToken()
+          const turnstileToken = hasAuthToken ? undefined : await getTurnstileToken()
 
           return {
             evmAddress: wallet.evmAddress,
@@ -111,6 +118,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
             ...(Object.keys(dynamicMultichainAddresses).length > 0 && {
               dynamicMultichainAddresses,
             }),
+            ...(turnstileToken && { turnstileToken }),
           }
         },
         prepareReconnectToStreamRequest: ({ id }) => ({
@@ -119,6 +127,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
       }),
     []
   )
+
+  useEffect(() => {
+    void initTurnstile()
+  }, [])
 
   const initialMessages = useMemo(
     () => (urlConversationId ? useChatStore.getState().getMessages(urlConversationId) : []),
