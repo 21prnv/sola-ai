@@ -100,11 +100,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
           const contacts = useContactStore.getState().contacts
           const dynamicMultichainAddresses = collectDynamicMultichainAddresses(userWalletsRef.current)
 
-          // Only fetch a Turnstile token when the user isn't authenticated via
-          // Dynamic — the JWT itself proves a real signed-in session, so the
-          // server skips the bot-check in that case.
-          const hasAuthToken = !!getAuthToken()
-          const turnstileToken = hasAuthToken ? undefined : await getTurnstileToken()
+          // Attach a Turnstile token whenever the widget is configured. The
+          // server skips bot-checks for valid Dynamic sessions, but this keeps
+          // requests working if a local auth token is stale or unverifiable in
+          // the deployed backend.
+          const turnstileToken = await getTurnstileToken()
 
           return {
             evmAddress: wallet.evmAddress,

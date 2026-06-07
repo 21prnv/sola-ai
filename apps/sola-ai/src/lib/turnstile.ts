@@ -1,7 +1,6 @@
-// Cloudflare Turnstile client wrapper. Renders a single invisible widget on
-// init, caches the issued token, and hands it out one-at-a-time. Tokens are
-// single-use on the server, so after consuming one we reset the widget to get
-// the next one ready.
+// Cloudflare Turnstile client wrapper. Renders a single invisible widget and
+// executes it on demand. Tokens are single-use on the server, so each caller
+// consumes the current token and the next caller runs a fresh challenge.
 //
 // If VITE_TURNSTILE_SITE_KEY is not set, all calls are no-ops — the server is
 // expected to also be unconfigured (TURNSTILE_SECRET_KEY) in dev.
@@ -33,7 +32,10 @@ declare global {
 let scriptPromise: Promise<void> | null = null
 let widgetId: string | null = null
 let cachedToken: string | null = null
-let waiters: Array<(token: string) => void> = []
+let waiters: Array<(token: string | undefined) => void> = []
+let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+const TOKEN_TIMEOUT_MS = 10_000
 
 function loadScript(): Promise<void> {
   if (scriptPromise) return scriptPromise
@@ -64,7 +66,23 @@ function deliverToken(token: string) {
   if (waiters.length === 0) return
   const w = waiters
   waiters = []
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+    timeoutId = null
+  }
   w.forEach(fn => fn(token))
+}
+
+function failWaiters() {
+  cachedToken = null
+  if (waiters.length === 0) return
+  const w = waiters
+  waiters = []
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+    timeoutId = null
+  }
+  w.forEach(fn => fn(undefined))
 }
 
 function consumeAndRefresh(): string | null {
@@ -108,10 +126,11 @@ export async function initTurnstile(): Promise<void> {
     size: 'invisible',
     callback: token => deliverToken(token),
     'error-callback': () => {
-      cachedToken = null
+      failWaiters()
     },
     'expired-callback': () => {
       cachedToken = null
+      failWaiters()
       try {
         if (widgetId) window.turnstile?.reset(widgetId)
       } catch {
@@ -124,12 +143,25 @@ export async function initTurnstile(): Promise<void> {
 export async function getTurnstileToken(): Promise<string | undefined> {
   if (!SITE_KEY) return undefined
   if (!widgetId) await initTurnstile()
-  if (!widgetId) return undefined
+  if (!widgetId || !window.turnstile) return undefined
 
   const ready = consumeAndRefresh()
   if (ready) return ready
 
-  return new Promise<string>(resolve => {
+  return new Promise<string | undefined>(resolve => {
+    const shouldExecute = waiters.length === 0
     waiters.push(resolve)
+
+    if (!shouldExecute) return
+
+    timeoutId = setTimeout(() => {
+      failWaiters()
+    }, TOKEN_TIMEOUT_MS)
+
+    try {
+      window.turnstile?.execute(widgetId ?? undefined)
+    } catch {
+      failWaiters()
+    }
   })
 }
