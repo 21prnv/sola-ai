@@ -105,10 +105,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
           // requests working if a local auth token is stale or unverifiable in
           // the deployed backend.
           const turnstileToken = await getTurnstileToken()
-          if (!turnstileToken && isTurnstileConfigured() && !getAuthToken()) {
-            throw new Error(
-              'Bot check token unavailable. Check the Turnstile site key, allowed domains, and script/CSP settings.'
-            )
+          if (!turnstileToken && !getAuthToken()) {
+            if (!isTurnstileConfigured()) {
+              throw new Error(
+                'Bot check is not configured in this frontend build. Set VITE_TURNSTILE_SITE_KEY and rebuild the frontend.'
+              )
+            }
+            throw new Error('Bot check token unavailable. Check the Turnstile allowed domains and script/CSP settings.')
           }
 
           return {
