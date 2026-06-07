@@ -11,6 +11,8 @@ const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render
 interface TurnstileWidgetOptions {
   sitekey: string
   size?: 'normal' | 'compact' | 'invisible' | 'flexible'
+  execution?: 'render' | 'execute'
+  appearance?: 'always' | 'execute' | 'interaction-only'
   callback?: (token: string) => void
   'error-callback'?: () => void
   'expired-callback'?: () => void
@@ -36,6 +38,10 @@ let waiters: Array<(token: string | undefined) => void> = []
 let timeoutId: ReturnType<typeof setTimeout> | null = null
 
 const TOKEN_TIMEOUT_MS = 10_000
+
+export function isTurnstileConfigured(): boolean {
+  return Boolean(SITE_KEY)
+}
 
 function loadScript(): Promise<void> {
   if (scriptPromise) return scriptPromise
@@ -124,6 +130,8 @@ export async function initTurnstile(): Promise<void> {
   widgetId = window.turnstile.render(container, {
     sitekey: SITE_KEY,
     size: 'invisible',
+    execution: 'execute',
+    appearance: 'execute',
     callback: token => deliverToken(token),
     'error-callback': () => {
       failWaiters()
