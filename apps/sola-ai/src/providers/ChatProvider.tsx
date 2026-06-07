@@ -12,7 +12,7 @@ import { collectDynamicMultichainAddresses } from '@/lib/dynamicMultichainWallet
 import { analytics } from '@/lib/mixpanel'
 import { clearAllPolymarketCreds } from '@/lib/polymarketAuth'
 import { getSolaServerBaseUrl } from '@/lib/serverBaseUrl'
-import { getTurnstileToken, initTurnstile } from '@/lib/turnstile'
+import { getTurnstileToken, initTurnstile, isTurnstileConfigured } from '@/lib/turnstile'
 import { useChatStore, MAX_MESSAGES_PER_CONVERSATION } from '@/stores/chatStore'
 import { useContactStore } from '@/stores/contactStore'
 import { useOrderStore } from '@/stores/orderStore'
@@ -105,6 +105,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
           // requests working if a local auth token is stale or unverifiable in
           // the deployed backend.
           const turnstileToken = await getTurnstileToken()
+          if (!turnstileToken && isTurnstileConfigured() && !getAuthToken()) {
+            throw new Error(
+              'Bot check token unavailable. Check the Turnstile site key, allowed domains, and script/CSP settings.'
+            )
+          }
 
           return {
             evmAddress: wallet.evmAddress,
