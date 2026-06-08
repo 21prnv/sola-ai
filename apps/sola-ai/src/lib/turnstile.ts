@@ -14,8 +14,10 @@ interface TurnstileWidgetOptions {
   execution?: 'render' | 'execute'
   appearance?: 'always' | 'execute' | 'interaction-only'
   callback?: (token: string) => void
-  'error-callback'?: () => void
+  'error-callback'?: (errorCode?: string) => void
   'expired-callback'?: () => void
+  'timeout-callback'?: () => void
+  'unsupported-callback'?: () => void
 }
 
 interface TurnstileApi {
@@ -33,9 +35,9 @@ declare global {
 
 let scriptPromise: Promise<void> | null = null
 let widgetId: string | null = null
-let cachedToken: string | null = null
-let waiters: Array<(token: string | undefined) => void> = []
+let pendingTokenResolve: ((token: string | undefined) => void) | null = null
 let timeoutId: ReturnType<typeof setTimeout> | null = null
+let tokenRequestQueue: Promise<unknown> = Promise.resolve()
 
 const TOKEN_TIMEOUT_MS = 10_000
 
@@ -67,44 +69,23 @@ function loadScript(): Promise<void> {
   return scriptPromise
 }
 
-function deliverToken(token: string) {
-  cachedToken = token
-  if (waiters.length === 0) return
-  const w = waiters
-  waiters = []
+function resolvePendingToken(token: string | undefined) {
+  const resolve = pendingTokenResolve
+  pendingTokenResolve = null
   if (timeoutId) {
     clearTimeout(timeoutId)
     timeoutId = null
   }
-  w.forEach(fn => fn(token))
+  resolve?.(token)
 }
 
-function failWaiters() {
-  cachedToken = null
-  if (waiters.length === 0) return
-  const w = waiters
-  waiters = []
-  if (timeoutId) {
-    clearTimeout(timeoutId)
-    timeoutId = null
+function resetWidget() {
+  if (!widgetId || !window.turnstile) return
+  try {
+    window.turnstile.reset(widgetId)
+  } catch {
+    // ignore
   }
-  w.forEach(fn => fn(undefined))
-}
-
-function consumeAndRefresh(): string | null {
-  if (!cachedToken) return null
-  const t = cachedToken
-  cachedToken = null
-  if (widgetId && window.turnstile) {
-    setTimeout(() => {
-      try {
-        window.turnstile?.reset(widgetId ?? undefined)
-      } catch {
-        // ignore
-      }
-    }, 0)
-  }
-  return t
 }
 
 export async function initTurnstile(): Promise<void> {
@@ -132,44 +113,46 @@ export async function initTurnstile(): Promise<void> {
     size: 'invisible',
     execution: 'execute',
     appearance: 'execute',
-    callback: token => deliverToken(token),
-    'error-callback': () => {
-      failWaiters()
+    callback: token => resolvePendingToken(token),
+    'error-callback': errorCode => {
+      if (errorCode) console.warn(`[turnstile] challenge error: ${errorCode}`)
+      resolvePendingToken(undefined)
     },
     'expired-callback': () => {
-      cachedToken = null
-      failWaiters()
-      try {
-        if (widgetId) window.turnstile?.reset(widgetId)
-      } catch {
-        // ignore
-      }
+      resolvePendingToken(undefined)
+    },
+    'timeout-callback': () => {
+      resolvePendingToken(undefined)
+    },
+    'unsupported-callback': () => {
+      console.warn('[turnstile] browser is unsupported')
+      resolvePendingToken(undefined)
     },
   })
 }
 
-export async function getTurnstileToken(): Promise<string | undefined> {
+async function executeTurnstileChallenge(): Promise<string | undefined> {
   if (!SITE_KEY) return undefined
   if (!widgetId) await initTurnstile()
   if (!widgetId || !window.turnstile) return undefined
 
-  const ready = consumeAndRefresh()
-  if (ready) return ready
-
   return new Promise<string | undefined>(resolve => {
-    const shouldExecute = waiters.length === 0
-    waiters.push(resolve)
-
-    if (!shouldExecute) return
-
+    pendingTokenResolve = resolve
     timeoutId = setTimeout(() => {
-      failWaiters()
+      resolvePendingToken(undefined)
     }, TOKEN_TIMEOUT_MS)
 
     try {
+      resetWidget()
       window.turnstile?.execute(widgetId ?? undefined)
     } catch {
-      failWaiters()
+      resolvePendingToken(undefined)
     }
   })
+}
+
+export function getTurnstileToken(): Promise<string | undefined> {
+  const request = tokenRequestQueue.then(() => executeTurnstileChallenge())
+  tokenRequestQueue = request.catch(() => undefined)
+  return request
 }
