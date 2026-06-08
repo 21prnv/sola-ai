@@ -7,7 +7,7 @@ type ChatMessage = ReturnType<typeof useChat>['messages'][number]
 export function generateConversationId(): string {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 9)
-  return `sola-ai-${timestamp}-${random}`
+  return `${timestamp}-${random}`
 }
 
 export function extractTitleFromMessages(
